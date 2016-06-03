@@ -643,5 +643,5 @@ The [dataset](https://archive.ics.uci.edu/ml/datasets/Human+Activity+Recognition
     [NbConvertApp] Support files will be in LSTM_files/
     [NbConvertApp] Making directory LSTM_files
     [NbConvertApp] Making directory LSTM_files
-    [NbConvertApp] Writing 24371 bytes to LSTM.md
+    [NbConvertApp] Writing 24566 bytes to LSTM.md
 
