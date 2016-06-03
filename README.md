@@ -1,7 +1,7 @@
 
 # LSTM for Human Activity Recognition
 
-Human activity recognition using smartphones sata set and an LSTM ANN. Classifying the type of movement amongst six categories:
+Human activity recognition using smartphones dataset and an LSTM RNN. Classifying the type of movement amongst six categories:
 - WALKING,
 - WALKING_UPSTAIRS,
 - WALKING_DOWNSTAIRS,
@@ -28,7 +28,7 @@ I will be using an LSTM on the data to learn (as a cellphone attached on the wai
 
 ## Results 
 
-Scroll ! Nice visuals awaits. 
+Scroll on! Nice visuals awaits. 
 
 
 ```python
@@ -92,14 +92,12 @@ os.chdir("..")
 !pwd && ls
 
 DATASET_PATH = DATA_PATH + "UCI HAR Dataset/"
-print("\n" + "Data set is now located at: " + DATASET_PATH)
+print("\n" + "Dataset is now located at: " + DATASET_PATH)
 
 ```
 
     /home/gui/Documents/GIT/LSTM-Human-Activity-Recognition
-    data		       LSTM (another copy).ipynb  LSTM.ipynb
-    Feedforward ANN.ipynb  LSTM (copy).ipynb	  README.md
-    LSTM (3rd copy).ipynb  LSTM_files		  Untitled.ipynb
+    data  LSTM_files  LSTM.ipynb  README.md
     /home/gui/Documents/GIT/LSTM-Human-Activity-Recognition/data
     download_dataset.py  __MACOSX  source.txt  UCI HAR Dataset  UCI HAR Dataset.zip
     
@@ -112,11 +110,9 @@ print("\n" + "Data set is now located at: " + DATASET_PATH)
     /home/gui/Documents/GIT/LSTM-Human-Activity-Recognition/data
     download_dataset.py  __MACOSX  source.txt  UCI HAR Dataset  UCI HAR Dataset.zip
     /home/gui/Documents/GIT/LSTM-Human-Activity-Recognition
-    data		       LSTM (another copy).ipynb  LSTM.ipynb
-    Feedforward ANN.ipynb  LSTM (copy).ipynb	  README.md
-    LSTM (3rd copy).ipynb  LSTM_files		  Untitled.ipynb
+    data  LSTM_files  LSTM.ipynb  README.md
     
-    Data set is now located at: data/UCI HAR Dataset/
+    Dataset is now located at: data/UCI HAR Dataset/
 
 
 ## Preparing dataset:
@@ -232,7 +228,7 @@ print "The dataset is therefore properly normalised, as expected, but not yet on
 def LSTM_RNN(_X, _istate, _weights, _biases):
     # Function returns a tensorflow LSTM (RNN) artificial neural network from given parameters. 
     # Note, some code of this notebook is inspired from an slightly different 
-    # ANN architecture used on another dataset: 
+    # RNN architecture used on another dataset: 
     # https://tensorhub.com/aymericdamien/tensorflow-rnn
 
     # (NOTE: This step could be greatly optimised by shaping the dataset once
@@ -643,5 +639,5 @@ The [dataset](https://archive.ics.uci.edu/ml/datasets/Human+Activity+Recognition
     [NbConvertApp] Support files will be in LSTM_files/
     [NbConvertApp] Making directory LSTM_files
     [NbConvertApp] Making directory LSTM_files
-    [NbConvertApp] Writing 24566 bytes to LSTM.md
+    [NbConvertApp] Writing 24317 bytes to LSTM.md
 
