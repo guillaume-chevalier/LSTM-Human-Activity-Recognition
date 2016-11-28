@@ -816,13 +816,15 @@ sess.close()
 
 ## Conclusion
 
-Outstandingly, the accuracy is of 90.77%! 
+Outstandingly, **the accuracy is of 90.77%**! 
 
 This means that the neural networks is almost always able to correctly identify the movement type! Remember, the phone is attached on the waist and each series to classify has just a 128 sample window of two internal sensors (a.k.a. 2.56 seconds at 50 FPS), so those predictions are extremely accurate.
 
-I specially did not expect such good results for guessing between "WALKING" "WALKING_UPSTAIRS" and "WALKING_DOWNSTAIRS" as a cellphone. Tought, it is still possible to see a little cluster on the matrix between those 3 classes. This is great.
+I specially did not expect such good results for guessing between "WALKING" "WALKING_UPSTAIRS" and "WALKING_DOWNSTAIRS" as a cellphone. Thought, it is still possible to see a little cluster on the matrix between those 3 classes. This is great.
 
-It is also possible to see that it was hard to do the difference between "SITTING" and "STANDING". Those are seemingly almost the same thing from the point of view of a device placed at waist level. 
+It is also possible to see that it was hard to do the difference between "SITTING" and "STANDING". Those are seemingly almost the same thing from the point of view of a device placed on the belly, according to how the dataset was gathered. 
+
+I also tried my code without the gyroscope, using only the two 3D features of the accelerometer, and got an accuracy of 86.90%.
 
 
 ## References
@@ -830,6 +832,9 @@ It is also possible to see that it was hard to do the difference between "SITTIN
 The [dataset](https://archive.ics.uci.edu/ml/datasets/Human+Activity+Recognition+Using+Smartphones) can be found on the UCI Machine Learning Repository. 
 
 > Davide Anguita, Alessandro Ghio, Luca Oneto, Xavier Parra and Jorge L. Reyes-Ortiz. A Public Domain Dataset for Human Activity Recognition Using Smartphones. 21th European Symposium on Artificial Neural Networks, Computational Intelligence and Machine Learning, ESANN 2013. Bruges, Belgium 24-26 April 2013.
+
+If you want to cite my work, you can point to the URL of the GitHub repository: 
+> https://github.com/guillaume-chevalier/LSTM-Human-Activity-Recognition
 
 ## Connect with me
 
@@ -848,5 +853,5 @@ The [dataset](https://archive.ics.uci.edu/ml/datasets/Human+Activity+Recognition
     [NbConvertApp] Support files will be in LSTM_files/
     [NbConvertApp] Making directory LSTM_files
     [NbConvertApp] Making directory LSTM_files
-    [NbConvertApp] Writing 41669 bytes to LSTM.md
+    [NbConvertApp] Writing 41999 bytes to LSTM.md
 
