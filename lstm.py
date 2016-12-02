@@ -18,37 +18,60 @@ import os
 
 # Load "X" (the neural network's training and testing inputs)
 
-def load_X(X_signals_paths):
-    X_signals = []
+def load_X(X_attribute):
+    """Given attribute(train or test) of feature, and read all 9 features into a ndarray,
+    shape is [sample_num,time_steps,feature_num]
+        argument: X_path str attribute of feature: train or test
+        return:  ndarray tensor of features
+    """
+    INPUT_SIGNAL_TYPES = [
+        "body_acc_x_",
+        "body_acc_y_",
+        "body_acc_z_",
+        "body_gyro_x_",
+        "body_gyro_y_",
+        "body_gyro_z_",
+        "total_acc_x_",
+        "total_acc_y_",
+        "total_acc_z_"
+    ]
+    X_path = './data/UCI HAR Dataset/' + X_attribute + '/Inertial Signals/'
+    X = []  # define a list to store the final features tensor
+    for name in INPUT_SIGNAL_TYPES:
+        absolute_name = X_path + name + X_attribute + '.txt'
+        f = open(absolute_name, 'rb')
+        # each_x shape is [sample_num,each_steps]
+        each_X = [np.array(serie, dtype=np.float32) for serie in [
+            row.replace("  ", " ").strip().split(" ") for row in f]]
+        # add all feature into X, X shape [feature_num, sample_num, time_steps]
+        X.append(each_X)
+        f.close()
+    # trans X from [feature_num, sample_num, time_steps] to [sample_num,
+    # time_steps,feature_num]
+    X = np.transpose(np.array(X), (1, 2, 0))
+    # print X.shape
+    return X
 
-    for signal_type_path in X_signals_paths:
-        file = open(signal_type_path, 'rb')
-        # Read dataset from disk, dealing with text files' syntax
-        X_signals.append(
-            [np.array(serie, dtype=np.float32) for serie in [
-                row.replace('  ', ' ').strip().split(' ') for row in file
-            ]]
-        )
-        file.close()
 
-    return np.transpose(np.array(X_signals), (1, 2, 0))
-
-
-# Load "y" (the neural network's training and testing outputs)
-
-def load_y(y_path):
-    file = open(y_path, 'rb')
-    # Read dataset from disk, dealing with text file's syntax
-    y_ = np.array(
-        [elem for elem in [
-            row.replace('  ', ' ').strip().split(' ') for row in file
-        ]],
-        dtype=np.int32
-    )
-    file.close()
-    # Substract 1 to each output class for friendly 0-based indexing
-    return y_ - 1
-
+def load_Y(Y_attribute):
+    """ read Y file and return Y 
+        argument: Y_attribute str attibute of Y('train' or 'test')
+        return: Y ndarray the labels of each sample,range [0,5]
+    """
+    LABELS = [
+        "WALKING",
+        "WALKING_UPSTAIRS",
+        "WALKING_DOWNSTAIRS",
+        "SITTING",
+        "STANDING",
+        "LAYING"
+    ]
+    Y_path = './data/UCI HAR Dataset/' + Y_attribute + '/y_' + Y_attribute + '.txt'
+    f = open(Y_path)
+    # create Y, type is ndarray, range [0,5]
+    Y = np.array([int(row) for row in f], dtype=np.int32) - 1
+    f.close()
+    return Y
 
 class Config(object):
     """
@@ -60,13 +83,14 @@ class Config(object):
         # Input data
         self.train_count = len(X_train)  # 7352 training series
         self.test_data_count = len(X_test)  # 2947 testing series
-        self.n_steps = len(X_train[0])  # 128 time_steps per series
+        self.time_steps = len(X_train[0])  # 128 time_steps per series
 
         # Trainging
         self.learning_rate = 0.0025
         self.lambda_loss_amount = 0.0015
         self.training_epochs = 300
-        self.batch_size = 1500
+        self.batch_size = 300
+
 
         # LSTM structure
         self.n_inputs = len(X_train[0][0])  # Features count is of 9: three 3D sensors features over time
@@ -82,33 +106,33 @@ class Config(object):
         }
 
 
-def LSTM_Network(feature_mat, config):
+def LSTM_Network(X, config):
     """model a LSTM Network,
       it stacks 2 LSTM layers, each layer has n_hidden=32 cells
        and 1 output layer, it is a full connet layer
       argument:
-        feature_mat: ndarray fature matrix, shape=[batch_size,time_steps,n_inputs]
+        X: ndarray fature matrix, shape=[batch_size,time_steps,n_inputs]
         config: class containing config of network
       return:
               : matrix  output shape [batch_size,n_classes]
     """
     # Exchange dim 1 and dim 0
-    feature_mat = tf.transpose(feature_mat, [1, 0, 2])
-    # New feature_mat's shape: [time_steps, batch_size, n_inputs]
+    X = tf.transpose(X, [1, 0, 2])
+    # New X's shape: [time_steps, batch_size, n_inputs]
 
-    # Temporarily crush the feature_mat's dimensions
-    feature_mat = tf.reshape(feature_mat, [-1, config.n_inputs])
-    # New feature_mat's shape: [time_steps*batch_size, n_inputs]
+    # Temporarily crush the X's dimensions
+    X = tf.reshape(X, [-1, config.n_inputs])
+    # New X's shape: [time_steps*batch_size, n_inputs]
 
     # Linear activation, reshaping inputs to the LSTM's number of hidden:
-    feature_mat = tf.matmul(
-        feature_mat, config.W['hidden']
+    X = tf.matmul(
+        X, config.W['hidden']
     ) + config.biases['hidden']
-    # New feature_mat's shape: [time_steps*batch_size, n_hidden]
+    # New X's shape: [time_steps*batch_size, n_hidden]
 
     # Split the series because the rnn cell needs time_steps features, each of shape:
-    feature_mat = tf.split(0, config.n_steps, feature_mat)
-    # New feature_mat's shape: a list of lenght "time_step" containing tensors of shape [batch_size, n_hidden]
+    X = tf.split(0, config.time_steps, X)
+    # New X's shape: a list of lenght "time_step" containing tensors of shape [batch_size, n_hidden]
 
     # Define LSTM cell of first hidden layer:
     lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(config.n_hidden, forget_bias=1.0)
@@ -117,7 +141,7 @@ def LSTM_Network(feature_mat, config):
     lsmt_layers = tf.nn.rnn_cell.MultiRNNCell([lstm_cell] * 2)
 
     # Get LSTM outputs, the states are internal to the LSTM cells,they are not our attention here
-    outputs, _ = tf.nn.rnn(lsmt_layers, feature_mat, dtype=tf.float32)
+    outputs, _ = tf.nn.rnn(lsmt_layers, X, dtype=tf.float32)
     # outputs' shape: a list of lenght "time_step" containing tensors of shape [batch_size, n_classes]
 
     # Linear activation
@@ -125,19 +149,14 @@ def LSTM_Network(feature_mat, config):
     return tf.matmul(outputs[-1], config.W['output']) + config.biases['output']
 
 
-def one_hot(label):
+def one_hot(Y):
     """convert label from dense to one hot
       argument:
-        label: ndarray dense label ,shape: [sample_num,1]
+        Y: ndarray dense Y ,shape: [sample_num,1]
       return:
-        one_hot_label: ndarray  one hot, shape: [sample_num,n_class]
+        _: ndarray  one hot, shape: [sample_num,n_class]
     """
-    label_num = len(label)
-    new_label = label.reshape(label_num)  # shape : [sample_num]
-    # because max is 5, and we will create 6 columns
-    n_values = np.max(new_label) + 1
-    return np.eye(n_values)[np.array(new_label, dtype=np.int32)]
-
+    return np.eye(6)[np.array(Y)]
 
 if __name__ == "__main__":
 
@@ -145,47 +164,16 @@ if __name__ == "__main__":
     # step1: load and prepare data
     #-----------------------------
     # Those are separate normalised input features for the neural network
-    INPUT_SIGNAL_TYPES = [
-        "body_acc_x_",
-        "body_acc_y_",
-        "body_acc_z_",
-        "body_gyro_x_",
-        "body_gyro_y_",
-        "body_gyro_z_",
-        "total_acc_x_",
-        "total_acc_y_",
-        "total_acc_z_"
-    ]
-
+    # shape [sample_num,time_steps,feature_num]=[7352,128,9]
+    X_train = load_X('train')
+    # shape [sample_num,time_steps,feature_num]=[1947,128,9]
+    X_test = load_X('test')
+    Y_train = load_Y('train')  # shape [sample_num,]=[7352,]
+    Y_test = load_Y('test')  # shape [sample_num,]=[2947]
+    Y_train = one_hot(Y_train)
+    Y_test = one_hot(Y_test)
+    # print X_train.shape,X_test.shape,Y_train.shape,Y_test.shape
     # Output classes to learn how to classify
-    LABELS = [
-        "WALKING",
-        "WALKING_UPSTAIRS",
-        "WALKING_DOWNSTAIRS",
-        "SITTING",
-        "STANDING",
-        "LAYING"
-    ]
-
-    DATA_PATH = "data/"
-    DATASET_PATH = DATA_PATH + "UCI HAR Dataset/"
-    print("\n" + "Dataset is now located at: " + DATASET_PATH)
-    TRAIN = "train/"
-    TEST = "test/"
-
-    X_train_signals_paths = [
-        DATASET_PATH + TRAIN + "Inertial Signals/" + signal + "train.txt" for signal in INPUT_SIGNAL_TYPES
-    ]
-    X_test_signals_paths = [
-        DATASET_PATH + TEST + "Inertial Signals/" + signal + "test.txt" for signal in INPUT_SIGNAL_TYPES
-    ]
-    X_train = load_X(X_train_signals_paths)
-    X_test = load_X(X_test_signals_paths)
-
-    y_train_path = DATASET_PATH + TRAIN + "y_train.txt"
-    y_test_path = DATASET_PATH + TEST + "y_test.txt"
-    y_train = one_hot(load_y(y_train_path))
-    y_test = one_hot(load_y(y_test_path))
 
     #-----------------------------------
     # step2: define parameters for model
@@ -193,14 +181,14 @@ if __name__ == "__main__":
     config = Config(X_train, X_test)
     print("Some useful info to get an insight on dataset's shape and normalisation:")
     print("features shape, labels shape, each features mean, each features standard deviation")
-    print(X_test.shape, y_test.shape,
+    print(X_test.shape, Y_test.shape,
           np.mean(X_test), np.std(X_test))
     print("the dataset is therefore properly normalised, as expected.")
 
     #------------------------------------------------------
     # step3: Let's get serious and build the neural network
     #------------------------------------------------------
-    X = tf.placeholder(tf.float32, [None, config.n_steps, config.n_inputs])
+    X = tf.placeholder(tf.float32, [None, config.time_steps, config.n_inputs])
     Y = tf.placeholder(tf.float32, [None, config.n_classes])
 
     pred_Y = LSTM_Network(X, config)
@@ -229,19 +217,21 @@ if __name__ == "__main__":
     for i in range(config.training_epochs):
         for start, end in zip(range(0, config.train_count, config.batch_size),
                               range(config.batch_size, config.train_count + 1, config.batch_size)):
-            sess.run(optimizer, feed_dict={X: X_train[start:end],
-                                           Y: y_train[start:end]})
+            _,acc_train,loss_train=sess.run([optimizer,accuracy,cost], feed_dict={X: X_train[start:end],
+                                           Y: Y_train[start:end]})
 
         # Test completely at every epoch: calculate accuracy
-        pred_out, accuracy_out, loss_out = sess.run([pred_Y, accuracy, cost], feed_dict={
-                                                X: X_test, Y: y_test})
+        pred_out, acc_test, loss_test = sess.run([pred_Y, accuracy, cost], feed_dict={
+                                                X: X_test, Y: Y_test})
         print("traing iter: {},".format(i)+\
-              " test accuracy : {},".format(accuracy_out)+\
-              " loss : {}".format(loss_out))
-        best_accuracy = max(best_accuracy, accuracy_out)
+              " train accuracy: {},".format(acc_train)+\
+              " train_loss: {},".format(loss_train)+\
+              " test accuracy : {},".format(acc_test)+\
+              " test loss : {}".format(loss_test))
+        best_accuracy = max(best_accuracy, acc_test)
 
     print("")
-    print("final test accuracy: {}".format(accuracy_out))
+    print("final test accuracy: {}".format(acc_test))
     print("best epoch's test accuracy: {}".format(best_accuracy))
     print("")
 
