@@ -88,7 +88,7 @@ class Config(object):
         # Trainging
         self.learning_rate = 0.0025
         self.lambda_loss_amount = 0.0015
-        self.training_epochs = 300
+        self.training_epochs = 10
         self.batch_size = 300
 
 
@@ -97,12 +97,12 @@ class Config(object):
         self.n_hidden = 32  # nb of neurons inside the neural network
         self.n_classes = 6  # Final output classes
         self.W = {
-            'hidden': tf.Variable(tf.random_normal([self.n_inputs, self.n_hidden])),
-            'output': tf.Variable(tf.random_normal([self.n_hidden, self.n_classes]))
+            'hidden': tf.Variable(tf.random_normal([self.n_inputs, self.n_hidden]),name="W_hidden"),
+            'output': tf.Variable(tf.random_normal([self.n_hidden, self.n_classes]),name="W_output")
         }
         self.biases = {
-            'hidden': tf.Variable(tf.random_normal([self.n_hidden])),
-            'output': tf.Variable(tf.random_normal([self.n_classes]))
+            'hidden': tf.Variable(tf.random_normal([self.n_hidden]),name="b_hidden"),
+            'output': tf.Variable(tf.random_normal([self.n_classes]),name="b_output")
         }
 
 
@@ -133,20 +133,20 @@ def LSTM_Network(X, config):
     # Split the series because the rnn cell needs time_steps features, each of shape:
     X = tf.split(0, config.time_steps, X)
     # New X's shape: a list of lenght "time_step" containing tensors of shape [batch_size, n_hidden]
+    with tf.name_scope("layer_1") as layer_1:
+        # Define LSTM cell of first hidden layer:
+        lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(config.n_hidden, forget_bias=1.0)
+        hidden1,_=tf.nn.rnn(lstm_cell, X,dtype=tf.float32)
+        tf.get_variable_scope().reuse_variables()
+    with tf.name_scope("layer_2") as layer_2:
+        lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(config.n_hidden, forget_bias=1.0)
+        # hidden2' shape: a list of lenght "time_step" containing tensors of shape [batch_size, n_classes]
+        hidden2,_=tf.nn.rnn(lstm_cell, hidden1,dtype=tf.float32)
 
-    # Define LSTM cell of first hidden layer:
-    lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(config.n_hidden, forget_bias=1.0)
-
-    # Stack two LSTM layers, both layers has the same shape
-    lsmt_layers = tf.nn.rnn_cell.MultiRNNCell([lstm_cell] * 2)
-
-    # Get LSTM outputs, the states are internal to the LSTM cells,they are not our attention here
-    outputs, _ = tf.nn.rnn(lsmt_layers, X, dtype=tf.float32)
-    # outputs' shape: a list of lenght "time_step" containing tensors of shape [batch_size, n_classes]
-
+    
     # Linear activation
     # Get the last output tensor of the inner loop output series, of shape [batch_size, n_classes]
-    return tf.matmul(outputs[-1], config.W['output']) + config.biases['output']
+    return tf.nn.relu(tf.matmul(hidden2[-1], config.W['output']) + config.biases['output'])
 
 
 def one_hot(Y):
@@ -190,50 +190,58 @@ if __name__ == "__main__":
     #------------------------------------------------------
     X = tf.placeholder(tf.float32, [None, config.time_steps, config.n_inputs])
     Y = tf.placeholder(tf.float32, [None, config.n_classes])
-
+    tf.histogram_summary("W_hidden",config.W['hidden'])
+    tf.histogram_summary("W_output",config.W['output'])
+    tf.histogram_summary("b_hidden",config.biases['hidden'])
+    tf.histogram_summary("b_output",config.biases['output'])
     pred_Y = LSTM_Network(X, config)
 
-    # Loss,optimizer,evaluation
-    l2 = config.lambda_loss_amount * \
-        sum(tf.nn.l2_loss(tf_var) for tf_var in tf.trainable_variables())
-    # Softmax loss and L2
-    cost = tf.reduce_mean(
-        tf.nn.softmax_cross_entropy_with_logits(pred_Y, Y)) + l2
-    optimizer = tf.train.AdamOptimizer(
-        learning_rate=config.learning_rate).minimize(cost)
-
-    correct_pred = tf.equal(tf.argmax(pred_Y, 1), tf.argmax(Y, 1))
-    accuracy = tf.reduce_mean(tf.cast(correct_pred, dtype=tf.float32))
+    with tf.name_scope("loss") as loss:
+        # Loss,optimizer,evaluation
+        l2 = config.lambda_loss_amount * \
+            sum(tf.nn.l2_loss(tf_var) for tf_var in tf.trainable_variables())
+        # Softmax loss and L2
+        cost = tf.reduce_mean(
+            tf.nn.softmax_cross_entropy_with_logits(pred_Y, Y)) + l2
+        optimizer = tf.train.AdamOptimizer(
+            learning_rate=config.learning_rate).minimize(cost)
+        tf.scalar_summary("loss", cost)
+    with tf.name_scope("accuracy") as accuracy:
+        correct_pred = tf.equal(tf.argmax(pred_Y, 1), tf.argmax(Y, 1))
+        accuracy = tf.reduce_mean(tf.cast(correct_pred, dtype=tf.float32))
+        tf.scalar_summary("accuracy", accuracy)
 
     #--------------------------------------------
     # step4: Hooray, now train the neural network
     #--------------------------------------------
     # Note that log_device_placement can be turned of for less console spam.
-    sess=tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=True))
-    tf.initialize_all_variables().run()
+    with tf.Session() as sess:
+        tf.initialize_all_variables().run()
+        merged=tf.merge_all_summaries()
+        writer=tf.train.SummaryWriter('./logs',sess.graph)
+        best_accuracy = 0.0
+        # Start training for each batch and loop epochs
+        for i in range(config.training_epochs):
+            for start, end in zip(range(0, config.train_count, config.batch_size),
+                                  range(config.batch_size, config.train_count + 1, config.batch_size)):
+                _,acc_train,loss_train=sess.run([optimizer,accuracy,cost], feed_dict={X: X_train[start:end],
+                                               Y: Y_train[start:end]})
 
-    best_accuracy = 0.0
-    # Start training for each batch and loop epochs
-    for i in range(config.training_epochs):
-        for start, end in zip(range(0, config.train_count, config.batch_size),
-                              range(config.batch_size, config.train_count + 1, config.batch_size)):
-            _,acc_train,loss_train=sess.run([optimizer,accuracy,cost], feed_dict={X: X_train[start:end],
-                                           Y: Y_train[start:end]})
+            # Test completely at every epoch: calculate accuracy
+            summary,pred_out, acc_test, loss_test = sess.run([merged,pred_Y, accuracy, cost], feed_dict={
+                                                    X: X_test, Y: Y_test})
+            writer.add_summary(summary,i)
+            print("traing iter: {},".format(i)+\
+                  " train accuracy: {},".format(acc_train)+\
+                  " train_loss: {},".format(loss_train)+\
+                  " test accuracy : {},".format(acc_test)+\
+                  " test loss : {}".format(loss_test))
+            best_accuracy = max(best_accuracy, acc_test)
 
-        # Test completely at every epoch: calculate accuracy
-        pred_out, acc_test, loss_test = sess.run([pred_Y, accuracy, cost], feed_dict={
-                                                X: X_test, Y: Y_test})
-        print("traing iter: {},".format(i)+\
-              " train accuracy: {},".format(acc_train)+\
-              " train_loss: {},".format(loss_train)+\
-              " test accuracy : {},".format(acc_test)+\
-              " test loss : {}".format(loss_test))
-        best_accuracy = max(best_accuracy, acc_test)
-
-    print("")
-    print("final test accuracy: {}".format(acc_test))
-    print("best epoch's test accuracy: {}".format(best_accuracy))
-    print("")
+        print("")
+        print("final test accuracy: {}".format(acc_test))
+        print("best epoch's test accuracy: {}".format(best_accuracy))
+        print("")
 
     #------------------------------------------------------------------
     # step5: Training is good, but having visual insight is even better
