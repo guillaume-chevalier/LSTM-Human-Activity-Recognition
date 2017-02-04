@@ -77,7 +77,7 @@ class Config(object):
             'output': tf.Variable(tf.random_normal([self.n_hidden, self.n_classes]))
         }
         self.biases = {
-            'hidden': tf.Variable(tf.random_normal([self.n_hidden])),
+            'hidden': tf.Variable(tf.random_normal([self.n_hidden], mean=1.0)),
             'output': tf.Variable(tf.random_normal([self.n_classes]))
         }
 
@@ -101,14 +101,14 @@ def LSTM_Network(feature_mat, config):
     # New feature_mat's shape: [time_steps*batch_size, n_inputs]
 
     # Linear activation, reshaping inputs to the LSTM's number of hidden:
-    feature_mat = tf.matmul(
+    hidden = tf.nn.relu(tf.matmul(
         feature_mat, config.W['hidden']
-    ) + config.biases['hidden']
-    # New feature_mat's shape: [time_steps*batch_size, n_hidden]
+    ) + config.biases['hidden'])
+    # New feature_mat (hidden) shape: [time_steps*batch_size, n_hidden]
 
     # Split the series because the rnn cell needs time_steps features, each of shape:
-    feature_mat = tf.split(0, config.n_steps, feature_mat)
-    # New feature_mat's shape: a list of lenght "time_step" containing tensors of shape [batch_size, n_hidden]
+    hidden = tf.split(0, config.n_steps, hidden)
+    # New hidden's shape: a list of lenght "time_step" containing tensors of shape [batch_size, n_hidden]
 
     # Define LSTM cell of first hidden layer:
     lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(config.n_hidden, forget_bias=1.0)
@@ -117,12 +117,15 @@ def LSTM_Network(feature_mat, config):
     lsmt_layers = tf.nn.rnn_cell.MultiRNNCell([lstm_cell] * 2)
 
     # Get LSTM outputs, the states are internal to the LSTM cells,they are not our attention here
-    outputs, _ = tf.nn.rnn(lsmt_layers, feature_mat, dtype=tf.float32)
+    outputs, _ = tf.nn.rnn(lsmt_layers, hidden, dtype=tf.float32)
     # outputs' shape: a list of lenght "time_step" containing tensors of shape [batch_size, n_classes]
 
+    # Get last time step's output feature for a "many to one" style classifier,
+    # as in the image describing RNNs at the top of this page
+    lstm_last_output = outputs[-1]
+
     # Linear activation
-    # Get the last output tensor of the inner loop output series, of shape [batch_size, n_classes]
-    return tf.matmul(outputs[-1], config.W['output']) + config.biases['output']
+    return tf.matmul(lstm_last_output, config.W['output']) + config.biases['output']
 
 
 def one_hot(label):
@@ -220,8 +223,8 @@ if __name__ == "__main__":
     #--------------------------------------------
     # step4: Hooray, now train the neural network
     #--------------------------------------------
-    # Note that log_device_placement can be turned of for less console spam.
-    sess=tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=True))
+    # Note that log_device_placement can be turned ON but will cause console spam.
+    sess=tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=False))
     tf.initialize_all_variables().run()
 
     best_accuracy = 0.0

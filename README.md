@@ -19,13 +19,21 @@ Follow this link to see a video of the 6 activities recorded in the experiment w
 alt="Video of the experiment" width="400" height="300" border="10" /></a>
 <a href="https://youtu.be/XOEN9W05_4A"><center>[Watch video]</center></a>
 
-## Details
+## Details about input data
 
 I will be using an LSTM on the data to learn (as a cellphone attached on the waist) to recognise the type of activity that the user is doing. The dataset's description goes like this:
 
 > The sensor signals (accelerometer and gyroscope) were pre-processed by applying noise filters and then sampled in fixed-width sliding windows of 2.56 sec and 50% overlap (128 readings/window). The sensor acceleration signal, which has gravitational and body motion components, was separated using a Butterworth low-pass filter into body acceleration and gravity. The gravitational force is assumed to have only low frequency components, therefore a filter with 0.3 Hz cutoff frequency was used. 
 
 That said, I will use the almost raw data: only the gravity effect has been filtered out of the accelerometer  as a preprocessing step for another 3D feature as an input to help learning. 
+
+## What is an RNN?
+
+As explained in [this article](http://karpathy.github.io/2015/05/21/rnn-effectiveness/), an RNN takes many input vectors to process them and output other vectors. It can be roughly pictured like in the image below, imagining each rectangle has a vectorial depth and other special hidden quirks in the image below. **In our case, the "many to one" architecture is used**: we accept time series of feature vectors (one vector per time step) to convert them to a probability vector at the output for classification. Note that a "one to one" architecture would be a standard feedforward neural network. 
+
+<img src="http://karpathy.github.io/assets/rnn/diags.jpeg" />
+
+An LSTM is an improved RNN. It is more complex, but easier to train, avoiding what is called the vanishing gradient problem and the exploding gradient problem. 
 
 
 ## Results 
@@ -98,7 +106,7 @@ print("\n" + "Dataset is now located at: " + DATASET_PATH)
 ```
 
     /home/gui/Documents/GIT/LSTM-Human-Activity-Recognition
-    data  LSTM.ipynb
+    data  LICENSE  LSTM_files  LSTM.ipynb  lstm.py	README.md
     /home/gui/Documents/GIT/LSTM-Human-Activity-Recognition/data
     download_dataset.py  __MACOSX  source.txt  UCI HAR Dataset  UCI HAR Dataset.zip
     
@@ -111,7 +119,7 @@ print("\n" + "Dataset is now located at: " + DATASET_PATH)
     /home/gui/Documents/GIT/LSTM-Human-Activity-Recognition/data
     download_dataset.py  __MACOSX  source.txt  UCI HAR Dataset  UCI HAR Dataset.zip
     /home/gui/Documents/GIT/LSTM-Human-Activity-Recognition
-    data  LSTM.ipynb
+    data  LICENSE  LSTM_files  LSTM.ipynb  lstm.py	README.md
     
     Dataset is now located at: data/UCI HAR Dataset/
 
@@ -205,7 +213,7 @@ learning_rate = 0.0025
 lambda_loss_amount = 0.0015
 training_iters = training_data_count * 300  # Loop 300 times on the dataset
 batch_size = 1500
-display_iter = 15000  # To show test set accuracy during training
+display_iter = 30000  # To show test set accuracy during training
 
 
 # Some debugging info
@@ -242,7 +250,7 @@ def LSTM_RNN(_X, _weights, _biases):
     # new shape: (n_steps*batch_size, n_input)
     
     # Linear activation
-    _X = tf.matmul(_X, _weights['hidden']) + _biases['hidden']
+    _X = tf.nn.relu(tf.matmul(_X, _weights['hidden']) + _biases['hidden'])
     # Split data because rnn cell needs a list of inputs for the RNN inner loop
     _X = tf.split(0, n_steps, _X) 
     # new shape: n_steps * (batch_size, n_hidden)
@@ -254,9 +262,12 @@ def LSTM_RNN(_X, _weights, _biases):
     # Get LSTM cell output
     outputs, states = tf.nn.rnn(lstm_cells, _X, dtype=tf.float32)
 
+    # Get last time step's output feature for a "many to one" style classifier, 
+    # as in the image describing RNNs at the top of this page
+    lstm_last_output = outputs[-1]
+    
     # Linear activation
-    # Get inner loop last output
-    return tf.matmul(outputs[-1], _weights['out']) + _biases['out']
+    return tf.matmul(lstm_last_output, _weights['out']) + _biases['out']
 
 
 def extract_batch_size(_train, step, batch_size):
@@ -296,7 +307,7 @@ y = tf.placeholder(tf.float32, [None, n_classes])
 # Graph weights
 weights = {
     'hidden': tf.Variable(tf.random_normal([n_input, n_hidden])), # Hidden layer weights
-    'out': tf.Variable(tf.random_normal([n_hidden, n_classes]))
+    'out': tf.Variable(tf.random_normal([n_hidden, n_classes], mean=1.0))
 }
 biases = {
     'hidden': tf.Variable(tf.random_normal([n_hidden])),
@@ -332,7 +343,7 @@ sess = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=True))
 init = tf.initialize_all_variables()
 sess.run(init)
 
-# Perform Training steps with "batch_size" iterations at each loop
+# Perform Training steps with "batch_size" amount of example data at each loop
 step = 1
 while step * batch_size <= training_iters:
     batch_xs =         extract_batch_size(X_train, step, batch_size)
@@ -394,309 +405,161 @@ print "FINAL RESULT: " + \
 
 ```
 
-    Training iter #1500:   Batch Loss = 4.575454, Accuracy = 0.1426666677
-    PERFORMANCE ON TEST SET: Batch Loss = 3.11178827286, Accuracy = 0.083814047277
-    Training iter #15000:   Batch Loss = 1.805075, Accuracy = 0.512000024319
-    PERFORMANCE ON TEST SET: Batch Loss = 1.83639490604, Accuracy = 0.459450274706
-    Training iter #30000:   Batch Loss = 1.524733, Accuracy = 0.592666685581
-    PERFORMANCE ON TEST SET: Batch Loss = 1.59639000893, Accuracy = 0.540889024734
-    Training iter #45000:   Batch Loss = 1.266281, Accuracy = 0.660000026226
-    PERFORMANCE ON TEST SET: Batch Loss = 1.42640054226, Accuracy = 0.594502866268
-    Training iter #60000:   Batch Loss = 1.165662, Accuracy = 0.719333350658
-    PERFORMANCE ON TEST SET: Batch Loss = 1.26158189774, Accuracy = 0.68917542696
-    Training iter #75000:   Batch Loss = 1.090536, Accuracy = 0.754666686058
-    PERFORMANCE ON TEST SET: Batch Loss = 1.22805702686, Accuracy = 0.715982377529
-    Training iter #90000:   Batch Loss = 0.962699, Accuracy = 0.842666685581
-    PERFORMANCE ON TEST SET: Batch Loss = 1.19088602066, Accuracy = 0.752629816532
-    Training iter #105000:   Batch Loss = 0.845098, Accuracy = 0.88466668129
-    PERFORMANCE ON TEST SET: Batch Loss = 1.17878103256, Accuracy = 0.768238902092
-    Training iter #120000:   Batch Loss = 0.752325, Accuracy = 0.922666668892
-    PERFORMANCE ON TEST SET: Batch Loss = 1.10739731789, Accuracy = 0.814726829529
-    Training iter #135000:   Batch Loss = 0.719420, Accuracy = 0.930666685104
-    PERFORMANCE ON TEST SET: Batch Loss = 0.983196675777, Accuracy = 0.846284329891
-    Training iter #150000:   Batch Loss = 0.648962, Accuracy = 0.963333308697
-    PERFORMANCE ON TEST SET: Batch Loss = 0.952148973942, Accuracy = 0.851374268532
-    Training iter #165000:   Batch Loss = 0.746680, Accuracy = 0.899999976158
-    PERFORMANCE ON TEST SET: Batch Loss = 0.903841257095, Accuracy = 0.863250792027
-    Training iter #180000:   Batch Loss = 0.742886, Accuracy = 0.906666696072
-    PERFORMANCE ON TEST SET: Batch Loss = 0.840512394905, Accuracy = 0.875127255917
-    Training iter #195000:   Batch Loss = 0.720926, Accuracy = 0.911333322525
-    PERFORMANCE ON TEST SET: Batch Loss = 0.872816443443, Accuracy = 0.871394634247
-    Training iter #210000:   Batch Loss = 0.700941, Accuracy = 0.917999982834
-    PERFORMANCE ON TEST SET: Batch Loss = 0.854153513908, Accuracy = 0.882253110409
-    Training iter #225000:   Batch Loss = 0.669675, Accuracy = 0.924000024796
-    PERFORMANCE ON TEST SET: Batch Loss = 0.802200436592, Accuracy = 0.887003719807
-    Training iter #240000:   Batch Loss = 0.568134, Accuracy = 0.973999977112
-    PERFORMANCE ON TEST SET: Batch Loss = 0.82608127594, Accuracy = 0.879877865314
-    Training iter #255000:   Batch Loss = 0.549412, Accuracy = 0.980666637421
-    PERFORMANCE ON TEST SET: Batch Loss = 0.811351120472, Accuracy = 0.880217194557
-    Training iter #270000:   Batch Loss = 0.542750, Accuracy = 0.981999993324
-    PERFORMANCE ON TEST SET: Batch Loss = 0.792157769203, Accuracy = 0.883949756622
-    Training iter #285000:   Batch Loss = 0.530857, Accuracy = 0.984666645527
-    PERFORMANCE ON TEST SET: Batch Loss = 0.796725153923, Accuracy = 0.885307073593
-    Training iter #300000:   Batch Loss = 0.519957, Accuracy = 0.98400002718
-    PERFORMANCE ON TEST SET: Batch Loss = 0.784544229507, Accuracy = 0.887343049049
-    Training iter #315000:   Batch Loss = 0.541124, Accuracy = 0.972666680813
-    PERFORMANCE ON TEST SET: Batch Loss = 0.780015945435, Accuracy = 0.879538536072
-    Training iter #330000:   Batch Loss = 0.553707, Accuracy = 0.9646666646
-    PERFORMANCE ON TEST SET: Batch Loss = 0.835344195366, Accuracy = 0.872073292732
-    Training iter #345000:   Batch Loss = 0.589612, Accuracy = 0.949333310127
-    PERFORMANCE ON TEST SET: Batch Loss = 0.802719056606, Accuracy = 0.881235182285
-    Training iter #360000:   Batch Loss = 0.573641, Accuracy = 0.94866669178
-    PERFORMANCE ON TEST SET: Batch Loss = 0.795131444931, Accuracy = 0.874448597431
-    Training iter #375000:   Batch Loss = 0.598676, Accuracy = 0.938666641712
-    PERFORMANCE ON TEST SET: Batch Loss = 0.830257892609, Accuracy = 0.864608049393
-    Training iter #390000:   Batch Loss = 0.576627, Accuracy = 0.938000023365
-    PERFORMANCE ON TEST SET: Batch Loss = 0.799493312836, Accuracy = 0.879199206829
-    Training iter #405000:   Batch Loss = 0.526197, Accuracy = 0.953333318233
-    PERFORMANCE ON TEST SET: Batch Loss = 0.729372382164, Accuracy = 0.891414999962
-    Training iter #420000:   Batch Loss = 0.536317, Accuracy = 0.955333352089
-    PERFORMANCE ON TEST SET: Batch Loss = 0.717933833599, Accuracy = 0.89616560936
-    Training iter #435000:   Batch Loss = 0.514075, Accuracy = 0.959999978542
-    PERFORMANCE ON TEST SET: Batch Loss = 0.74327981472, Accuracy = 0.882253110409
-    Training iter #450000:   Batch Loss = 0.511001, Accuracy = 0.949333310127
-    PERFORMANCE ON TEST SET: Batch Loss = 0.725793123245, Accuracy = 0.893790304661
-    Training iter #465000:   Batch Loss = 0.548203, Accuracy = 0.939999997616
-    PERFORMANCE ON TEST SET: Batch Loss = 0.829982995987, Accuracy = 0.866644024849
-    Training iter #480000:   Batch Loss = 0.531429, Accuracy = 0.927999973297
-    PERFORMANCE ON TEST SET: Batch Loss = 0.739032506943, Accuracy = 0.881574511528
-    Training iter #495000:   Batch Loss = 0.489275, Accuracy = 0.955333352089
-    PERFORMANCE ON TEST SET: Batch Loss = 0.84563010931, Accuracy = 0.865286707878
-    Training iter #510000:   Batch Loss = 0.490075, Accuracy = 0.954666674137
-    PERFORMANCE ON TEST SET: Batch Loss = 0.728687524796, Accuracy = 0.895486950874
-    Training iter #525000:   Batch Loss = 0.451927, Accuracy = 0.974666655064
-    PERFORMANCE ON TEST SET: Batch Loss = 0.717314362526, Accuracy = 0.890736341476
-    Training iter #540000:   Batch Loss = 0.522697, Accuracy = 0.931999981403
-    PERFORMANCE ON TEST SET: Batch Loss = 0.677192807198, Accuracy = 0.895826280117
-    Training iter #555000:   Batch Loss = 0.521561, Accuracy = 0.931999981403
-    PERFORMANCE ON TEST SET: Batch Loss = 0.656917333603, Accuracy = 0.894808292389
-    Training iter #570000:   Batch Loss = 0.505313, Accuracy = 0.934000015259
-    PERFORMANCE ON TEST SET: Batch Loss = 0.664022982121, Accuracy = 0.899219572544
-    Training iter #585000:   Batch Loss = 0.509840, Accuracy = 0.934666693211
-    PERFORMANCE ON TEST SET: Batch Loss = 0.68600410223, Accuracy = 0.887343049049
-    Training iter #600000:   Batch Loss = 0.495022, Accuracy = 0.938000023365
-    PERFORMANCE ON TEST SET: Batch Loss = 0.718553900719, Accuracy = 0.882253110409
-    Training iter #615000:   Batch Loss = 0.436445, Accuracy = 0.977333307266
-    PERFORMANCE ON TEST SET: Batch Loss = 0.717109918594, Accuracy = 0.885307073593
-    Training iter #630000:   Batch Loss = 0.431761, Accuracy = 0.976666688919
-    PERFORMANCE ON TEST SET: Batch Loss = 1.10843300819, Accuracy = 0.80556499958
-    Training iter #645000:   Batch Loss = 0.605546, Accuracy = 0.906666696072
-    PERFORMANCE ON TEST SET: Batch Loss = 0.739134371281, Accuracy = 0.840855121613
-    Training iter #660000:   Batch Loss = 0.462404, Accuracy = 0.968666672707
-    PERFORMANCE ON TEST SET: Batch Loss = 0.704330086708, Accuracy = 0.862911462784
-    Training iter #675000:   Batch Loss = 0.453931, Accuracy = 0.973333358765
-    PERFORMANCE ON TEST SET: Batch Loss = 0.690061211586, Accuracy = 0.879199206829
-    Training iter #690000:   Batch Loss = 0.392534, Accuracy = 0.996666669846
-    PERFORMANCE ON TEST SET: Batch Loss = 0.654640078545, Accuracy = 0.894129633904
-    Training iter #705000:   Batch Loss = 0.454180, Accuracy = 0.973999977112
-    PERFORMANCE ON TEST SET: Batch Loss = 0.603749155998, Accuracy = 0.90430945158
-    Training iter #720000:   Batch Loss = 0.462097, Accuracy = 0.953333318233
-    PERFORMANCE ON TEST SET: Batch Loss = 0.611262202263, Accuracy = 0.902612805367
-    Training iter #735000:   Batch Loss = 0.457372, Accuracy = 0.949999988079
-    PERFORMANCE ON TEST SET: Batch Loss = 0.600763738155, Accuracy = 0.906345427036
-    Training iter #750000:   Batch Loss = 0.469722, Accuracy = 0.939999997616
-    PERFORMANCE ON TEST SET: Batch Loss = 0.596443295479, Accuracy = 0.907702744007
-    Training iter #765000:   Batch Loss = 0.473977, Accuracy = 0.940666675568
-    PERFORMANCE ON TEST SET: Batch Loss = 0.609652996063, Accuracy = 0.901934146881
-    Training iter #780000:   Batch Loss = 0.395754, Accuracy = 0.965333342552
-    PERFORMANCE ON TEST SET: Batch Loss = 0.600235044956, Accuracy = 0.907024085522
-    Training iter #795000:   Batch Loss = 0.394890, Accuracy = 0.959999978542
-    PERFORMANCE ON TEST SET: Batch Loss = 0.58463537693, Accuracy = 0.915167987347
-    Training iter #810000:   Batch Loss = 0.396357, Accuracy = 0.955999970436
-    PERFORMANCE ON TEST SET: Batch Loss = 0.587031722069, Accuracy = 0.91313201189
-    Training iter #825000:   Batch Loss = 0.402448, Accuracy = 0.953999996185
-    PERFORMANCE ON TEST SET: Batch Loss = 0.588794231415, Accuracy = 0.91177469492
-    Training iter #840000:   Batch Loss = 0.417953, Accuracy = 0.944000005722
-    PERFORMANCE ON TEST SET: Batch Loss = 0.595950126648, Accuracy = 0.908381402493
-    Training iter #855000:   Batch Loss = 0.425846, Accuracy = 0.941333353519
-    PERFORMANCE ON TEST SET: Batch Loss = 0.604835391045, Accuracy = 0.904988110065
-    Training iter #870000:   Batch Loss = 0.395381, Accuracy = 0.966000020504
-    PERFORMANCE ON TEST SET: Batch Loss = 0.62311989069, Accuracy = 0.902612805367
-    Training iter #885000:   Batch Loss = 0.379031, Accuracy = 0.970666646957
-    PERFORMANCE ON TEST SET: Batch Loss = 0.556019067764, Accuracy = 0.908720731735
-    Training iter #900000:   Batch Loss = 0.366955, Accuracy = 0.97866666317
-    PERFORMANCE ON TEST SET: Batch Loss = 0.560609638691, Accuracy = 0.909399390221
-    Training iter #915000:   Batch Loss = 0.422597, Accuracy = 0.939999997616
-    PERFORMANCE ON TEST SET: Batch Loss = 0.551591157913, Accuracy = 0.912114024162
-    Training iter #930000:   Batch Loss = 0.459800, Accuracy = 0.926666676998
-    PERFORMANCE ON TEST SET: Batch Loss = 0.567300021648, Accuracy = 0.908381402493
-    Training iter #945000:   Batch Loss = 0.427131, Accuracy = 0.935333311558
-    PERFORMANCE ON TEST SET: Batch Loss = 0.570689320564, Accuracy = 0.902952134609
-    Training iter #960000:   Batch Loss = 0.444879, Accuracy = 0.934000015259
-    PERFORMANCE ON TEST SET: Batch Loss = 0.53837120533, Accuracy = 0.91177469492
-    Training iter #975000:   Batch Loss = 0.407420, Accuracy = 0.947333335876
-    PERFORMANCE ON TEST SET: Batch Loss = 0.576001763344, Accuracy = 0.897183597088
-    Training iter #990000:   Batch Loss = 0.358638, Accuracy = 0.977333307266
-    PERFORMANCE ON TEST SET: Batch Loss = 0.566704928875, Accuracy = 0.904988110065
-    Training iter #1005000:   Batch Loss = 0.344259, Accuracy = 0.986000001431
-    PERFORMANCE ON TEST SET: Batch Loss = 0.706675469875, Accuracy = 0.869019329548
-    Training iter #1020000:   Batch Loss = 0.358466, Accuracy = 0.975333333015
-    PERFORMANCE ON TEST SET: Batch Loss = 0.61932772398, Accuracy = 0.891754329205
-    Training iter #1035000:   Batch Loss = 0.334988, Accuracy = 0.984666645527
-    PERFORMANCE ON TEST SET: Batch Loss = 0.632777690887, Accuracy = 0.878520548344
-    Training iter #1050000:   Batch Loss = 0.340259, Accuracy = 0.977999985218
-    PERFORMANCE ON TEST SET: Batch Loss = 0.614942312241, Accuracy = 0.892772316933
-    Training iter #1065000:   Batch Loss = 0.332005, Accuracy = 0.995333313942
-    PERFORMANCE ON TEST SET: Batch Loss = 0.572589993477, Accuracy = 0.90430945158
-    Training iter #1080000:   Batch Loss = 0.367203, Accuracy = 0.974666655064
-    PERFORMANCE ON TEST SET: Batch Loss = 0.553013861179, Accuracy = 0.897183597088
-    Training iter #1095000:   Batch Loss = 0.384246, Accuracy = 0.954666674137
-    PERFORMANCE ON TEST SET: Batch Loss = 0.616080880165, Accuracy = 0.88361042738
-    Training iter #1110000:   Batch Loss = 0.401190, Accuracy = 0.941999971867
-    PERFORMANCE ON TEST SET: Batch Loss = 0.583316922188, Accuracy = 0.889379024506
-    Training iter #1125000:   Batch Loss = 0.407854, Accuracy = 0.941999971867
-    PERFORMANCE ON TEST SET: Batch Loss = 0.54475069046, Accuracy = 0.901594817638
-    Training iter #1140000:   Batch Loss = 0.388828, Accuracy = 0.945333361626
-    PERFORMANCE ON TEST SET: Batch Loss = 0.562619686127, Accuracy = 0.892772316933
-    Training iter #1155000:   Batch Loss = 0.325556, Accuracy = 0.959333360195
-    PERFORMANCE ON TEST SET: Batch Loss = 0.624062478542, Accuracy = 0.881235182285
-    Training iter #1170000:   Batch Loss = 0.336760, Accuracy = 0.959333360195
-    PERFORMANCE ON TEST SET: Batch Loss = 0.567292392254, Accuracy = 0.896844267845
-    Training iter #1185000:   Batch Loss = 0.323525, Accuracy = 0.96266669035
-    PERFORMANCE ON TEST SET: Batch Loss = 0.554633200169, Accuracy = 0.900916159153
-    Training iter #1200000:   Batch Loss = 0.332793, Accuracy = 0.955999970436
-    PERFORMANCE ON TEST SET: Batch Loss = 0.572944641113, Accuracy = 0.893111646175
-    Training iter #1215000:   Batch Loss = 0.354524, Accuracy = 0.940666675568
-    PERFORMANCE ON TEST SET: Batch Loss = 0.583880543709, Accuracy = 0.897183597088
-    Training iter #1230000:   Batch Loss = 0.340542, Accuracy = 0.942666649818
-    PERFORMANCE ON TEST SET: Batch Loss = 0.58384168148, Accuracy = 0.895826280117
-    Training iter #1245000:   Batch Loss = 0.318747, Accuracy = 0.970666646957
-    PERFORMANCE ON TEST SET: Batch Loss = 0.591021180153, Accuracy = 0.894808292389
-    Training iter #1260000:   Batch Loss = 0.331109, Accuracy = 0.959999978542
-    PERFORMANCE ON TEST SET: Batch Loss = 0.610709190369, Accuracy = 0.882931768894
-    Training iter #1275000:   Batch Loss = 0.360516, Accuracy = 0.939333319664
-    PERFORMANCE ON TEST SET: Batch Loss = 0.721515417099, Accuracy = 0.871055305004
-    Training iter #1290000:   Batch Loss = 0.363310, Accuracy = 0.935333311558
-    PERFORMANCE ON TEST SET: Batch Loss = 0.583494842052, Accuracy = 0.885646402836
-    Training iter #1305000:   Batch Loss = 0.468750, Accuracy = 0.917333304882
-    PERFORMANCE ON TEST SET: Batch Loss = 0.616247475147, Accuracy = 0.889379024506
-    Training iter #1320000:   Batch Loss = 0.396604, Accuracy = 0.928666651249
-    PERFORMANCE ON TEST SET: Batch Loss = 0.559162676334, Accuracy = 0.885646402836
-    Training iter #1335000:   Batch Loss = 0.375801, Accuracy = 0.930666685104
-    PERFORMANCE ON TEST SET: Batch Loss = 0.526473701, Accuracy = 0.895147621632
-    Training iter #1350000:   Batch Loss = 0.330984, Accuracy = 0.966666638851
-    PERFORMANCE ON TEST SET: Batch Loss = 0.504767656326, Accuracy = 0.90057682991
-    Training iter #1365000:   Batch Loss = 0.303565, Accuracy = 0.973333358765
-    PERFORMANCE ON TEST SET: Batch Loss = 0.545929431915, Accuracy = 0.889039695263
-    Training iter #1380000:   Batch Loss = 0.307729, Accuracy = 0.972000002861
-    PERFORMANCE ON TEST SET: Batch Loss = 0.558818459511, Accuracy = 0.898880243301
-    Training iter #1395000:   Batch Loss = 0.293135, Accuracy = 0.981333315372
-    PERFORMANCE ON TEST SET: Batch Loss = 0.496408224106, Accuracy = 0.90804207325
-    Training iter #1410000:   Batch Loss = 0.272638, Accuracy = 0.987999975681
-    PERFORMANCE ON TEST SET: Batch Loss = 0.531621038914, Accuracy = 0.892093658447
-    Training iter #1425000:   Batch Loss = 0.279873, Accuracy = 0.987999975681
-    PERFORMANCE ON TEST SET: Batch Loss = 0.577055752277, Accuracy = 0.878859877586
-    Training iter #1440000:   Batch Loss = 0.322893, Accuracy = 0.9646666646
-    PERFORMANCE ON TEST SET: Batch Loss = 0.532765746117, Accuracy = 0.903630793095
-    Training iter #1455000:   Batch Loss = 0.339059, Accuracy = 0.953999996185
-    PERFORMANCE ON TEST SET: Batch Loss = 0.504770159721, Accuracy = 0.904988110065
-    Training iter #1470000:   Batch Loss = 0.334370, Accuracy = 0.954666674137
-    PERFORMANCE ON TEST SET: Batch Loss = 0.516438186169, Accuracy = 0.895147621632
-    Training iter #1485000:   Batch Loss = 0.337459, Accuracy = 0.942666649818
-    PERFORMANCE ON TEST SET: Batch Loss = 0.47318738699, Accuracy = 0.909060060978
-    Training iter #1500000:   Batch Loss = 0.334233, Accuracy = 0.940666675568
-    PERFORMANCE ON TEST SET: Batch Loss = 0.489954531193, Accuracy = 0.903291463852
-    Training iter #1515000:   Batch Loss = 0.294658, Accuracy = 0.953999996185
-    PERFORMANCE ON TEST SET: Batch Loss = 0.476269245148, Accuracy = 0.910756707191
-    Training iter #1530000:   Batch Loss = 0.284108, Accuracy = 0.956666648388
-    PERFORMANCE ON TEST SET: Batch Loss = 0.539360523224, Accuracy = 0.891414999962
-    Training iter #1545000:   Batch Loss = 0.350899, Accuracy = 0.946666657925
-    PERFORMANCE ON TEST SET: Batch Loss = 0.529010236263, Accuracy = 0.891075670719
-    Training iter #1560000:   Batch Loss = 0.299959, Accuracy = 0.950666666031
-    PERFORMANCE ON TEST SET: Batch Loss = 0.511167883873, Accuracy = 0.900237500668
-    Training iter #1575000:   Batch Loss = 0.295145, Accuracy = 0.953999996185
-    PERFORMANCE ON TEST SET: Batch Loss = 0.47209841013, Accuracy = 0.904988110065
-    Training iter #1590000:   Batch Loss = 0.363128, Accuracy = 0.925999999046
-    PERFORMANCE ON TEST SET: Batch Loss = 0.484584033489, Accuracy = 0.898880243301
-    Training iter #1605000:   Batch Loss = 0.361442, Accuracy = 0.941999971867
-    PERFORMANCE ON TEST SET: Batch Loss = 0.52424800396, Accuracy = 0.888021707535
-    Training iter #1620000:   Batch Loss = 0.293465, Accuracy = 0.965333342552
-    PERFORMANCE ON TEST SET: Batch Loss = 0.544751405716, Accuracy = 0.892772316933
-    Training iter #1635000:   Batch Loss = 0.270814, Accuracy = 0.97866666317
-    PERFORMANCE ON TEST SET: Batch Loss = 0.504271149635, Accuracy = 0.898201584816
-    Training iter #1650000:   Batch Loss = 0.320242, Accuracy = 0.931333363056
-    PERFORMANCE ON TEST SET: Batch Loss = 0.705718159676, Accuracy = 0.84865963459
-    Training iter #1665000:   Batch Loss = 0.793835, Accuracy = 0.796666681767
-    PERFORMANCE ON TEST SET: Batch Loss = 0.677424192429, Accuracy = 0.847641646862
-    Training iter #1680000:   Batch Loss = 0.473026, Accuracy = 0.917333304882
-    PERFORMANCE ON TEST SET: Batch Loss = 0.643717765808, Accuracy = 0.870715975761
-    Training iter #1695000:   Batch Loss = 0.499333, Accuracy = 0.887333333492
-    PERFORMANCE ON TEST SET: Batch Loss = 0.604045450687, Accuracy = 0.878859877586
-    Training iter #1710000:   Batch Loss = 0.464397, Accuracy = 0.880666673183
-    PERFORMANCE ON TEST SET: Batch Loss = 0.662315666676, Accuracy = 0.872751951218
-    Training iter #1725000:   Batch Loss = 0.434838, Accuracy = 0.94866669178
-    PERFORMANCE ON TEST SET: Batch Loss = 0.707927942276, Accuracy = 0.858839511871
-    Training iter #1740000:   Batch Loss = 0.338807, Accuracy = 0.936666667461
-    PERFORMANCE ON TEST SET: Batch Loss = 0.656027317047, Accuracy = 0.872073292732
-    Training iter #1755000:   Batch Loss = 0.291782, Accuracy = 0.984666645527
-    PERFORMANCE ON TEST SET: Batch Loss = 0.628328800201, Accuracy = 0.8805565238
-    Training iter #1770000:   Batch Loss = 0.287209, Accuracy = 0.982666671276
-    PERFORMANCE ON TEST SET: Batch Loss = 0.61780667305, Accuracy = 0.883949756622
-    Training iter #1785000:   Batch Loss = 0.277615, Accuracy = 0.986000001431
-    PERFORMANCE ON TEST SET: Batch Loss = 0.604023754597, Accuracy = 0.88870036602
-    Training iter #1800000:   Batch Loss = 0.271597, Accuracy = 0.987333357334
-    PERFORMANCE ON TEST SET: Batch Loss = 0.604183316231, Accuracy = 0.8805565238
-    Training iter #1815000:   Batch Loss = 0.293323, Accuracy = 0.98400002718
-    PERFORMANCE ON TEST SET: Batch Loss = 0.601334929466, Accuracy = 0.88361042738
-    Training iter #1830000:   Batch Loss = 0.333876, Accuracy = 0.953999996185
-    PERFORMANCE ON TEST SET: Batch Loss = 0.604100167751, Accuracy = 0.881913781166
-    Training iter #1845000:   Batch Loss = 0.331412, Accuracy = 0.952000021935
-    PERFORMANCE ON TEST SET: Batch Loss = 0.58773380518, Accuracy = 0.887003719807
-    Training iter #1860000:   Batch Loss = 0.344151, Accuracy = 0.941333353519
-    PERFORMANCE ON TEST SET: Batch Loss = 0.59240424633, Accuracy = 0.882931768894
-    Training iter #1875000:   Batch Loss = 0.339558, Accuracy = 0.940666675568
-    PERFORMANCE ON TEST SET: Batch Loss = 0.612593412399, Accuracy = 0.878859877586
-    Training iter #1890000:   Batch Loss = 0.284066, Accuracy = 0.956666648388
-    PERFORMANCE ON TEST SET: Batch Loss = 0.614794969559, Accuracy = 0.885307073593
-    Training iter #1905000:   Batch Loss = 0.241255, Accuracy = 0.97866666317
-    PERFORMANCE ON TEST SET: Batch Loss = 0.629106223583, Accuracy = 0.8805565238
-    Training iter #1920000:   Batch Loss = 0.298859, Accuracy = 0.958666682243
-    PERFORMANCE ON TEST SET: Batch Loss = 0.603316783905, Accuracy = 0.888361036777
-    Training iter #1935000:   Batch Loss = 0.294400, Accuracy = 0.953333318233
-    PERFORMANCE ON TEST SET: Batch Loss = 0.587940692902, Accuracy = 0.89243298769
-    Training iter #1950000:   Batch Loss = 0.284691, Accuracy = 0.95733332634
-    PERFORMANCE ON TEST SET: Batch Loss = 0.580442249775, Accuracy = 0.890397012234
-    Training iter #1965000:   Batch Loss = 0.295974, Accuracy = 0.945333361626
-    PERFORMANCE ON TEST SET: Batch Loss = 0.605518162251, Accuracy = 0.884628415108
-    Training iter #1980000:   Batch Loss = 0.287975, Accuracy = 0.948000013828
-    PERFORMANCE ON TEST SET: Batch Loss = 0.609712958336, Accuracy = 0.88870036602
-    Training iter #1995000:   Batch Loss = 0.289593, Accuracy = 0.96266669035
-    PERFORMANCE ON TEST SET: Batch Loss = 0.582665205002, Accuracy = 0.895826280117
-    Training iter #2010000:   Batch Loss = 0.251413, Accuracy = 0.982666671276
-    PERFORMANCE ON TEST SET: Batch Loss = 0.591309666634, Accuracy = 0.887343049049
-    Training iter #2025000:   Batch Loss = 0.317092, Accuracy = 0.931333363056
-    PERFORMANCE ON TEST SET: Batch Loss = 0.591833949089, Accuracy = 0.88496774435
-    Training iter #2040000:   Batch Loss = 0.324491, Accuracy = 0.934000015259
-    PERFORMANCE ON TEST SET: Batch Loss = 0.569988429546, Accuracy = 0.89989823103
-    Training iter #2055000:   Batch Loss = 0.309216, Accuracy = 0.936666667461
-    PERFORMANCE ON TEST SET: Batch Loss = 0.577533602715, Accuracy = 0.881913781166
-    Training iter #2070000:   Batch Loss = 0.322018, Accuracy = 0.934666693211
-    PERFORMANCE ON TEST SET: Batch Loss = 0.58077198267, Accuracy = 0.883949756622
-    Training iter #2085000:   Batch Loss = 0.322328, Accuracy = 0.941999971867
-    PERFORMANCE ON TEST SET: Batch Loss = 0.565859556198, Accuracy = 0.887343049049
-    Training iter #2100000:   Batch Loss = 0.250848, Accuracy = 0.989333331585
-    PERFORMANCE ON TEST SET: Batch Loss = 0.568353116512, Accuracy = 0.884628415108
-    Training iter #2115000:   Batch Loss = 0.259181, Accuracy = 0.966000020504
-    PERFORMANCE ON TEST SET: Batch Loss = 0.525161743164, Accuracy = 0.897183597088
-    Training iter #2130000:   Batch Loss = 0.243086, Accuracy = 0.987999975681
-    PERFORMANCE ON TEST SET: Batch Loss = 0.539084136486, Accuracy = 0.891754329205
-    Training iter #2145000:   Batch Loss = 0.236770, Accuracy = 0.987999975681
-    PERFORMANCE ON TEST SET: Batch Loss = 0.527505517006, Accuracy = 0.892093658447
-    Training iter #2160000:   Batch Loss = 0.229853, Accuracy = 0.987999975681
-    PERFORMANCE ON TEST SET: Batch Loss = 0.51251077652, Accuracy = 0.902952134609
-    Training iter #2175000:   Batch Loss = 0.256231, Accuracy = 0.980666637421
-    PERFORMANCE ON TEST SET: Batch Loss = 0.51353931427, Accuracy = 0.900916159153
-    Training iter #2190000:   Batch Loss = 0.278643, Accuracy = 0.977999985218
-    PERFORMANCE ON TEST SET: Batch Loss = 0.533600509167, Accuracy = 0.896504938602
-    Training iter #2205000:   Batch Loss = 0.327923, Accuracy = 0.944000005722
-    PERFORMANCE ON TEST SET: Batch Loss = 0.530030608177, Accuracy = 0.907702744007
+    Training iter #1500:   Batch Loss = 3.074432, Accuracy = 0.100666671991
+    PERFORMANCE ON TEST SET: Batch Loss = 2.64702987671, Accuracy = 0.224635243416
+    Training iter #30000:   Batch Loss = 1.388876, Accuracy = 0.713999986649
+    PERFORMANCE ON TEST SET: Batch Loss = 1.42781305313, Accuracy = 0.678316831589
+    Training iter #60000:   Batch Loss = 1.243671, Accuracy = 0.755333304405
+    PERFORMANCE ON TEST SET: Batch Loss = 1.33201026917, Accuracy = 0.725822806358
+    Training iter #90000:   Batch Loss = 1.026985, Accuracy = 0.858666718006
+    PERFORMANCE ON TEST SET: Batch Loss = 1.29318606853, Accuracy = 0.784526586533
+    Training iter #120000:   Batch Loss = 0.950223, Accuracy = 0.88666665554
+    PERFORMANCE ON TEST SET: Batch Loss = 1.19165813923, Accuracy = 0.818459331989
+    Training iter #150000:   Batch Loss = 0.821248, Accuracy = 0.934666633606
+    PERFORMANCE ON TEST SET: Batch Loss = 1.1244571209, Accuracy = 0.840515732765
+    Training iter #180000:   Batch Loss = 0.852562, Accuracy = 0.895999968052
+    PERFORMANCE ON TEST SET: Batch Loss = 1.09874331951, Accuracy = 0.85985738039
+    Training iter #210000:   Batch Loss = 0.975475, Accuracy = 0.886000037193
+    PERFORMANCE ON TEST SET: Batch Loss = 1.00003457069, Accuracy = 0.87852036953
+    Training iter #240000:   Batch Loss = 0.778386, Accuracy = 0.943333387375
+    PERFORMANCE ON TEST SET: Batch Loss = 1.01710581779, Accuracy = 0.87852036953
+    Training iter #270000:   Batch Loss = 0.687293, Accuracy = 0.942666709423
+    PERFORMANCE ON TEST SET: Batch Loss = 0.985704541206, Accuracy = 0.885646343231
+    Training iter #300000:   Batch Loss = 0.648103, Accuracy = 0.974000036716
+    PERFORMANCE ON TEST SET: Batch Loss = 1.01484704018, Accuracy = 0.873769819736
+    Training iter #330000:   Batch Loss = 0.759852, Accuracy = 0.948000073433
+    PERFORMANCE ON TEST SET: Batch Loss = 0.960080265999, Accuracy = 0.871394515038
+    Training iter #360000:   Batch Loss = 0.739065, Accuracy = 0.923333406448
+    PERFORMANCE ON TEST SET: Batch Loss = 0.955386519432, Accuracy = 0.880556344986
+    Training iter #390000:   Batch Loss = 0.721678, Accuracy = 0.932666659355
+    PERFORMANCE ON TEST SET: Batch Loss = 0.999629855156, Accuracy = 0.860875368118
+    Training iter #420000:   Batch Loss = 0.629302, Accuracy = 0.953333437443
+    PERFORMANCE ON TEST SET: Batch Loss = 0.959317803383, Accuracy = 0.874109148979
+    Training iter #450000:   Batch Loss = 0.611473, Accuracy = 0.955333292484
+    PERFORMANCE ON TEST SET: Batch Loss = 0.913493096828, Accuracy = 0.884628295898
+    Training iter #480000:   Batch Loss = 0.610332, Accuracy = 0.942000031471
+    PERFORMANCE ON TEST SET: Batch Loss = 0.95140516758, Accuracy = 0.874109148979
+    Training iter #510000:   Batch Loss = 0.596108, Accuracy = 0.972666740417
+    PERFORMANCE ON TEST SET: Batch Loss = 0.912526726723, Accuracy = 0.87987780571
+    Training iter #540000:   Batch Loss = 0.644551, Accuracy = 0.932000041008
+    PERFORMANCE ON TEST SET: Batch Loss = 0.915139496326, Accuracy = 0.877841830254
+    Training iter #570000:   Batch Loss = 0.631275, Accuracy = 0.92933344841
+    PERFORMANCE ON TEST SET: Batch Loss = 0.892684578896, Accuracy = 0.878181099892
+    Training iter #600000:   Batch Loss = 0.616123, Accuracy = 0.933333277702
+    PERFORMANCE ON TEST SET: Batch Loss = 0.905649662018, Accuracy = 0.874109208584
+    Training iter #630000:   Batch Loss = 0.518553, Accuracy = 0.983333408833
+    PERFORMANCE ON TEST SET: Batch Loss = 0.877397477627, Accuracy = 0.872751891613
+    Training iter #660000:   Batch Loss = 0.517939, Accuracy = 0.971333324909
+    PERFORMANCE ON TEST SET: Batch Loss = 0.873089075089, Accuracy = 0.882931649685
+    Training iter #690000:   Batch Loss = 0.501185, Accuracy = 0.980666697025
+    PERFORMANCE ON TEST SET: Batch Loss = 0.880154192448, Accuracy = 0.873769879341
+    Training iter #720000:   Batch Loss = 0.554758, Accuracy = 0.951333403587
+    PERFORMANCE ON TEST SET: Batch Loss = 0.843538284302, Accuracy = 0.881574392319
+    Training iter #750000:   Batch Loss = 0.563906, Accuracy = 0.938666701317
+    PERFORMANCE ON TEST SET: Batch Loss = 0.896262228489, Accuracy = 0.867322564125
+    Training iter #780000:   Batch Loss = 0.464500, Accuracy = 0.967333436012
+    PERFORMANCE ON TEST SET: Batch Loss = 0.871921360493, Accuracy = 0.874787867069
+    Training iter #810000:   Batch Loss = 0.482101, Accuracy = 0.952000081539
+    PERFORMANCE ON TEST SET: Batch Loss = 0.856980860233, Accuracy = 0.87682390213
+    Training iter #840000:   Batch Loss = 0.505377, Accuracy = 0.938666701317
+    PERFORMANCE ON TEST SET: Batch Loss = 0.790416657925, Accuracy = 0.884628295898
+    Training iter #870000:   Batch Loss = 0.458924, Accuracy = 0.972000002861
+    PERFORMANCE ON TEST SET: Batch Loss = 0.793853282928, Accuracy = 0.879877686501
+    Training iter #900000:   Batch Loss = 0.418589, Accuracy = 0.984000086784
+    PERFORMANCE ON TEST SET: Batch Loss = 0.887957155704, Accuracy = 0.870376586914
+    Training iter #930000:   Batch Loss = 1.169172, Accuracy = 0.695999979973
+    PERFORMANCE ON TEST SET: Batch Loss = 0.910101830959, Accuracy = 0.783169269562
+    Training iter #960000:   Batch Loss = 0.606064, Accuracy = 0.891333341599
+    PERFORMANCE ON TEST SET: Batch Loss = 0.852943599224, Accuracy = 0.829317867756
+    Training iter #990000:   Batch Loss = 0.470464, Accuracy = 0.961333394051
+    PERFORMANCE ON TEST SET: Batch Loss = 0.724700808525, Accuracy = 0.865965306759
+    Training iter #1020000:   Batch Loss = 0.437445, Accuracy = 0.969333350658
+    PERFORMANCE ON TEST SET: Batch Loss = 0.706804692745, Accuracy = 0.897522866726
+    Training iter #1050000:   Batch Loss = 0.416014, Accuracy = 0.974000096321
+    PERFORMANCE ON TEST SET: Batch Loss = 0.682184875011, Accuracy = 0.903970062733
+    Training iter #1080000:   Batch Loss = 0.453880, Accuracy = 0.972000002861
+    PERFORMANCE ON TEST SET: Batch Loss = 0.672256708145, Accuracy = 0.907702565193
+    Training iter #1110000:   Batch Loss = 0.471102, Accuracy = 0.938666701317
+    PERFORMANCE ON TEST SET: Batch Loss = 0.727611303329, Accuracy = 0.895826101303
+    Training iter #1140000:   Batch Loss = 0.464602, Accuracy = 0.942666709423
+    PERFORMANCE ON TEST SET: Batch Loss = 0.7117882967, Accuracy = 0.892772197723
+    Training iter #1170000:   Batch Loss = 0.399398, Accuracy = 0.957333445549
+    PERFORMANCE ON TEST SET: Batch Loss = 0.662129640579, Accuracy = 0.894129574299
+    Training iter #1200000:   Batch Loss = 0.465797, Accuracy = 0.940666735172
+    PERFORMANCE ON TEST SET: Batch Loss = 0.679540455341, Accuracy = 0.884967684746
+    Training iter #1230000:   Batch Loss = 0.479665, Accuracy = 0.938666641712
+    PERFORMANCE ON TEST SET: Batch Loss = 0.683512926102, Accuracy = 0.881913661957
+    Training iter #1260000:   Batch Loss = 0.390101, Accuracy = 0.977333366871
+    PERFORMANCE ON TEST SET: Batch Loss = 0.628258824348, Accuracy = 0.901255488396
+    Training iter #1290000:   Batch Loss = 0.420251, Accuracy = 0.94000005722
+    PERFORMANCE ON TEST SET: Batch Loss = 0.648212552071, Accuracy = 0.899898052216
+    Training iter #1320000:   Batch Loss = 0.432608, Accuracy = 0.95066678524
+    PERFORMANCE ON TEST SET: Batch Loss = 0.610033810139, Accuracy = 0.904648661613
+    Training iter #1350000:   Batch Loss = 0.403986, Accuracy = 0.938666701317
+    PERFORMANCE ON TEST SET: Batch Loss = 0.70320302248, Accuracy = 0.886325001717
+    Training iter #1380000:   Batch Loss = 0.358220, Accuracy = 0.968666732311
+    PERFORMANCE ON TEST SET: Batch Loss = 0.613206148148, Accuracy = 0.898540854454
+    Training iter #1410000:   Batch Loss = 0.341404, Accuracy = 0.973999977112
+    PERFORMANCE ON TEST SET: Batch Loss = 0.648775041103, Accuracy = 0.886664271355
+    Training iter #1440000:   Batch Loss = 0.368336, Accuracy = 0.97000002861
+    PERFORMANCE ON TEST SET: Batch Loss = 0.598120570183, Accuracy = 0.905666589737
+    Training iter #1470000:   Batch Loss = 0.390903, Accuracy = 0.956666707993
+    PERFORMANCE ON TEST SET: Batch Loss = 0.66110599041, Accuracy = 0.889039635658
+    Training iter #1500000:   Batch Loss = 0.400978, Accuracy = 0.939333379269
+    PERFORMANCE ON TEST SET: Batch Loss = 0.724209189415, Accuracy = 0.880217075348
+    Training iter #1530000:   Batch Loss = 0.323776, Accuracy = 0.965999960899
+    PERFORMANCE ON TEST SET: Batch Loss = 0.634877681732, Accuracy = 0.894468903542
+    Training iter #1560000:   Batch Loss = 0.336838, Accuracy = 0.959333360195
+    PERFORMANCE ON TEST SET: Batch Loss = 0.655008435249, Accuracy = 0.879877746105
+    Training iter #1590000:   Batch Loss = 0.363266, Accuracy = 0.944666743279
+    PERFORMANCE ON TEST SET: Batch Loss = 0.632539153099, Accuracy = 0.894129574299
+    Training iter #1620000:   Batch Loss = 0.315511, Accuracy = 0.976666688919
+    PERFORMANCE ON TEST SET: Batch Loss = 0.684278428555, Accuracy = 0.887003660202
+    Training iter #1650000:   Batch Loss = 0.328709, Accuracy = 0.952000081539
+    PERFORMANCE ON TEST SET: Batch Loss = 0.639604568481, Accuracy = 0.90057682991
+    Training iter #1680000:   Batch Loss = 0.376681, Accuracy = 0.934000015259
+    PERFORMANCE ON TEST SET: Batch Loss = 0.628734171391, Accuracy = 0.890057504177
+    Training iter #1710000:   Batch Loss = 0.373600, Accuracy = 0.945999979973
+    PERFORMANCE ON TEST SET: Batch Loss = 0.588403463364, Accuracy = 0.905666649342
+    Training iter #1740000:   Batch Loss = 0.304719, Accuracy = 0.969333350658
+    PERFORMANCE ON TEST SET: Batch Loss = 0.807882368565, Accuracy = 0.86732262373
+    Training iter #1770000:   Batch Loss = 0.484144, Accuracy = 0.916666686535
+    PERFORMANCE ON TEST SET: Batch Loss = 0.787532448769, Accuracy = 0.833050489426
+    Training iter #1800000:   Batch Loss = 0.328061, Accuracy = 0.961333394051
+    PERFORMANCE ON TEST SET: Batch Loss = 0.552209913731, Accuracy = 0.890396952629
+    Training iter #1830000:   Batch Loss = 0.361723, Accuracy = 0.953333318233
+    PERFORMANCE ON TEST SET: Batch Loss = 0.49697381258, Accuracy = 0.909399271011
+    Training iter #1860000:   Batch Loss = 0.381517, Accuracy = 0.934666693211
+    PERFORMANCE ON TEST SET: Batch Loss = 0.513538181782, Accuracy = 0.919239759445
+    Training iter #1890000:   Batch Loss = 0.316621, Accuracy = 0.954666733742
+    PERFORMANCE ON TEST SET: Batch Loss = 0.512967705727, Accuracy = 0.912113904953
+    Training iter #1920000:   Batch Loss = 0.300370, Accuracy = 0.960000038147
+    PERFORMANCE ON TEST SET: Batch Loss = 0.529131948948, Accuracy = 0.902273356915
+    Training iter #1950000:   Batch Loss = 0.306562, Accuracy = 0.956666707993
+    PERFORMANCE ON TEST SET: Batch Loss = 0.530484378338, Accuracy = 0.909399271011
+    Training iter #1980000:   Batch Loss = 0.318665, Accuracy = 0.954666733742
+    PERFORMANCE ON TEST SET: Batch Loss = 0.521255552769, Accuracy = 0.916185855865
+    Training iter #2010000:   Batch Loss = 0.423832, Accuracy = 0.949333369732
+    PERFORMANCE ON TEST SET: Batch Loss = 0.508657217026, Accuracy = 0.910417318344
+    Training iter #2040000:   Batch Loss = 0.335710, Accuracy = 0.950000107288
+    PERFORMANCE ON TEST SET: Batch Loss = 0.591941297054, Accuracy = 0.885646283627
+    Training iter #2070000:   Batch Loss = 0.335933, Accuracy = 0.933333337307
+    PERFORMANCE ON TEST SET: Batch Loss = 0.495988607407, Accuracy = 0.906345367432
+    Training iter #2100000:   Batch Loss = 0.271547, Accuracy = 0.986000061035
+    PERFORMANCE ON TEST SET: Batch Loss = 0.500951290131, Accuracy = 0.908720612526
+    Training iter #2130000:   Batch Loss = 0.278299, Accuracy = 0.970666706562
+    PERFORMANCE ON TEST SET: Batch Loss = 0.508447647095, Accuracy = 0.91856110096
+    Training iter #2160000:   Batch Loss = 0.270260, Accuracy = 0.963999986649
+    PERFORMANCE ON TEST SET: Batch Loss = 0.505264401436, Accuracy = 0.919239759445
+    Training iter #2190000:   Batch Loss = 0.273257, Accuracy = 0.968666732311
+    PERFORMANCE ON TEST SET: Batch Loss = 0.504503488541, Accuracy = 0.914149820805
     Optimization Finished!
-    FINAL RESULT: Batch Loss = 0.530030608177, Accuracy = 0.907702744007
+    FINAL RESULT: Batch Loss = 0.510438203812, Accuracy = 0.914149880409
 
 
 ## Training is good, but having visual insight is even better:
 
-Okay, let's do it simply in the notebook for now
+Okay, let's plot this simply in the notebook for now.
 
 
 ```python
@@ -781,26 +644,26 @@ plt.xlabel('Predicted label')
 plt.show()
 ```
 
-    Testing Accuracy: 90.7702744007%
+    Testing Accuracy: 91.4149880409%
     
-    Precision: 90.8521998563%
-    Recall: 90.7702748558%
-    f1_score: 90.7685497939%
+    Precision: 91.5553217851%
+    Recall: 91.4149983034%
+    f1_score: 91.4338139477%
     
     Confusion Matrix:
-    [[450   2  15  12  17   0]
-     [ 30 427  14   0   0   0]
-     [  5   0 415   0   0   0]
-     [  0  22   3 402  64   0]
-     [  1   6   0  54 471   0]
+    [[467  21   0   0   8   0]
+     [  6 451  14   0   0   0]
+     [  4   2 414   0   0   0]
+     [  1   7   0 396  87   0]
+     [  1   1   0  74 456   0]
      [  0  27   0   0   0 510]]
     
     Confusion matrix (normalised to % of total test data):
-    [[ 15.2697649    0.06786563   0.5089922    0.40719375   0.57685781   0.        ]
-     [  1.01798439  14.48931122   0.47505939   0.           0.           0.        ]
-     [  0.16966406   0.          14.08211708   0.           0.           0.        ]
-     [  0.           0.74652189   0.10179844  13.64099121   2.1717       0.        ]
-     [  0.03393281   0.20359688   0.           1.83237195  15.98235512   0.        ]
+    [[ 15.84662342   0.71258909   0.           0.           0.2714625    0.        ]
+     [  0.20359688  15.30369854   0.47505939   0.           0.           0.        ]
+     [  0.13573125   0.06786563  14.04818439   0.           0.           0.        ]
+     [  0.03393281   0.2375297    0.          13.43739319   2.95215464   0.        ]
+     [  0.03393281   0.03393281   0.           2.51102829  15.47336292   0.        ]
      [  0.           0.91618598   0.           0.           0.          17.30573463]]
     Note: training and testing data is not equally distributed amongst classes, so it is normal that more than a 6th of the data is correctly classifier in the last category.
 
@@ -816,7 +679,7 @@ sess.close()
 
 ## Conclusion
 
-Outstandingly, **the accuracy is of 90.77%**! 
+Outstandingly, **the accuracy is of 91%**! 
 
 This means that the neural networks is almost always able to correctly identify the movement type! Remember, the phone is attached on the waist and each series to classify has just a 128 sample window of two internal sensors (a.k.a. 2.56 seconds at 50 FPS), so those predictions are extremely accurate.
 
@@ -824,7 +687,12 @@ I specially did not expect such good results for guessing between "WALKING" "WAL
 
 It is also possible to see that it was hard to do the difference between "SITTING" and "STANDING". Those are seemingly almost the same thing from the point of view of a device placed on the belly, according to how the dataset was gathered. 
 
-I also tried my code without the gyroscope, using only the two 3D features of the accelerometer, and got an accuracy of 86.90%.
+I also tried my code without the gyroscope, using only the two 3D accelerometer's features (and not changing the training hyperparameters), and got an accuracy of 87%.
+
+
+## Improvements
+
+In [another repo of mine](https://github.com/guillaume-chevalier/HAR-stacked-residual-bidir-LSTMs), the accuracy is pushed up to 94% using a special deep bidirectional architecture, and this architecture is tested on another dataset. If you want to learn more about deep learning, I have built a list of ressources that I found to be useful [here](https://github.com/guillaume-chevalier/awesome-deep-learning-resources). 
 
 
 ## References
@@ -853,5 +721,5 @@ If you want to cite my work, you can point to the URL of the GitHub repository:
     [NbConvertApp] Support files will be in LSTM_files/
     [NbConvertApp] Making directory LSTM_files
     [NbConvertApp] Making directory LSTM_files
-    [NbConvertApp] Writing 41999 bytes to LSTM.md
+    [NbConvertApp] Writing 31631 bytes to LSTM.md
 
