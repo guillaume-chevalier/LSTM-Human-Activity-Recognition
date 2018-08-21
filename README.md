@@ -268,7 +268,7 @@ def LSTM_RNN(_X, _weights, _biases):
     _X = tf.reshape(_X, [-1, n_input])
     # new shape: (n_steps*batch_size, n_input)
 
-    # Linear activation
+    # ReLU activation, thanks to Yu Zhao for adding this improvement here:
     _X = tf.nn.relu(tf.matmul(_X, _weights['hidden']) + _biases['hidden'])
     # Split data because rnn cell needs a list of inputs for the RNN inner loop
     _X = tf.split(_X, n_steps, 0)
