@@ -721,6 +721,7 @@ If you want to learn more about deep learning, I have also built a list of the l
 ## Checkpoint
 
 The checkpoint will save the best model weights according to the validation loss. In other words, weights in a step would be saved only if the validation loss evaluated would be least out of all the steps done before.
+**Caution**- The checkpoint saved in the checkpoints directory doesn't contains the best out of all the iterations or steps. It contains saved model till few steps. (just checking if the code works to save the model).
 
 ## References
 
