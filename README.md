@@ -718,7 +718,7 @@ In [another open-source repository of mine](https://github.com/guillaume-chevali
 
 If you want to learn more about deep learning, I have also built a list of the learning ressources for deep learning which have revealed to be the most useful to me [here](https://github.com/guillaume-chevalier/awesome-deep-learning-resources). You could as well learn to [learn to learn by gradient descent by gradient descent](https://arxiv.org/pdf/1606.04474.pdf) (not for the faint of heart). Ok, I pushed the joke deep enough... 
 
-## Checkpoint
+## Checkpoint (added later)
 
 The checkpoint will save the best model weights according to the validation loss. In other words, weights in a step would be saved only if the validation loss evaluated would be least out of all the steps done before.
 #### Caution- 
