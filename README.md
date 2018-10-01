@@ -722,6 +722,8 @@ If you want to learn more about deep learning, I have also built a list of the l
 
 The checkpoint will save the best model weights according to the validation loss. In other words, weights in a step would be saved only if the validation loss evaluated would be least out of all the steps done before.
 
+**Caution** - In the checkpoint directory, the checkpoint is of few steps rather than till the last step. (Testing purpose only)
+
 ## References
 
 The [dataset](https://archive.ics.uci.edu/ml/datasets/Human+Activity+Recognition+Using+Smartphones) can be found on the UCI Machine Learning Repository. 
