@@ -619,6 +619,15 @@ In [another open-source repository of mine](https://github.com/guillaume-chevali
 
 If you want to learn more about deep learning, I have also built a list of the learning ressources for deep learning which have revealed to be the most useful to me [here](https://github.com/guillaume-chevalier/Awesome-Deep-Learning-Resources).
 
+I also have made even more improvements as seen just below with the few lines of code for easier usage and for reaching an even better score. Note this this is still an ongoing project, [subscribe here](https://www.neuraxio.com/en/time-series-solution) to learn more.
+
+### Even better and easily usable in the cloud
+
+So I'm planning to release an easily-usable cloud solution that can be used as follow to classify or forecast your time series, and this isn't limited to Human Activity Recognition data:
+
+[![](https://www.neuraxio.com/images/neuraxio-ts-solution.png)](https://www.neuraxio.com/en/time-series-solution)
+
+Visit [the Neuraxio's Time Series Solution](https://www.neuraxio.com/en/time-series-solution) product page for more information.
 
 ## References
 
