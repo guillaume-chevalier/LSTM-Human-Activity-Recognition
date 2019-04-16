@@ -658,7 +658,7 @@ My code is available for free and even for private usage for anyone under the [M
 - [GitHub](https://github.com/guillaume-chevalier/)
 - [Quora](https://www.quora.com/profile/Guillaume-Chevalier-2)
 - [YouTube](https://www.youtube.com/c/GuillaumeChevalier)
-- [Dev/Consulting](http://www.neuraxio.com/en/)
+- [Machine Learning Consulting](https://www.neuraxio.com/en/)
 
 ### Liked this project? Did it help you? Leave a [star](https://github.com/guillaume-chevalier/LSTM-Human-Activity-Recognition/stargazers), [fork](https://github.com/guillaume-chevalier/LSTM-Human-Activity-Recognition/network/members) and share the love!
 
