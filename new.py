@@ -5,6 +5,7 @@ import os
 import numpy as np
 
 from data_reading import DATASET_PATH, TRAIN, TEST, X_train_signals_paths, X_test_signals_paths, load_X, load_y
+from neuraxle.base import ExecutionContext, DEFAULT_CACHE_FOLDER, ExecutionMode
 from neuraxle.hyperparams.space import HyperparameterSamples
 from neuraxle.pipeline import MiniBatchSequentialPipeline, Joiner
 from steps.lstm_rnn_tensorflow_model import LSTMRNNTensorflowModel
@@ -79,3 +80,11 @@ def main():
 
     for _ in range(no_iter):
         pipeline = pipeline.fit(X_train, y_train)
+
+    pipeline.save(
+        ExecutionContext.create_from_root(
+            pipeline,
+            ExecutionMode.FIT,
+            DEFAULT_CACHE_FOLDER
+        )
+    )

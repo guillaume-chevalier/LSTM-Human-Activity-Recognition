@@ -13,13 +13,21 @@ class LSTMRNNTensorflowModel(BaseStep):
         'n_classes': 6
     })
 
-    def __init__(self, name=None, hyperparams=HYPERPARAMS):
-        BaseStep.__init__(
-            self,
-            name=name,
-            hyperparams=hyperparams,
-            savers=[Tensorflow1StepSaver()]
-        )
+    def __init__(self, name=None, hyperparams=None):
+        if hyperparams is None:
+            BaseStep.__init__(
+                self,
+                name=name,
+                hyperparams=hyperparams,
+                savers=[Tensorflow1StepSaver()]
+            )
+        else:
+            BaseStep.__init__(
+                self,
+                name=name,
+                hyperparams=self.HYPERPARAMS,
+                savers=[Tensorflow1StepSaver()]
+            )
 
         self.x = None
         self.y = None

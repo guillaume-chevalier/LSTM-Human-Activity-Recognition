@@ -16,11 +16,15 @@ class LSTMRNNTensorflowModelTrainingWrapper(MetaStepMixin, BaseStep):
     def __init__(
             self,
             tensorflow_model: LSTMRNNTensorflowModel,
-            hyperparams=HYPERPARAMS,
+            hyperparams=None,
             X_test=None,
             y_test=None
     ):
-        BaseStep.__init__(self, hyperparams=hyperparams)
+        if hyperparams is None:
+            BaseStep.__init__(self, hyperparams=self.HYPERPARAMS)
+        else:
+            BaseStep.__init__(self, hyperparams=hyperparams)
+
         MetaStepMixin.__init__(self, wrapped=tensorflow_model)
 
         self.y_test = y_test
