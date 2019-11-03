@@ -23,14 +23,20 @@ LABELS = [
 
 DATA_PATH = "data/"
 DATASET_PATH = DATA_PATH + "UCI HAR Dataset/"
+
 TRAIN = "train/"
 TEST = "test/"
+
 X_train_signals_paths = [
     DATASET_PATH + TRAIN + "Inertial Signals/" + signal + "train.txt" for signal in INPUT_SIGNAL_TYPES
 ]
+
 X_test_signals_paths = [
     DATASET_PATH + TEST + "Inertial Signals/" + signal + "test.txt" for signal in INPUT_SIGNAL_TYPES
 ]
+
+TEST_FILE_NAME = "y_test.txt"
+TRAIN_FILE_NAME = "y_train.txt"
 
 
 def load_X(X_signals_paths):
