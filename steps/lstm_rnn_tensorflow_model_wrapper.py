@@ -58,6 +58,9 @@ class ClassificationRNNTensorFlowModel(BaseStep):
         self.train_accuracies = None
 
     def setup(self) -> BaseStep:
+        if self.is_initialized:
+            return self
+
         # Launch the graph
         with tf.variable_scope(LSTM_RNN_VARIABLE_SCOPE, reuse=tf.AUTO_REUSE):
             self.pred_name = 'pred'
