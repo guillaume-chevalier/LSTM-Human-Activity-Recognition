@@ -57,7 +57,6 @@ def main():
 
         return np.transpose(np.array(X_signals), (1, 2, 0))
 
-
     def load_y(y_path):
         file = open(y_path, 'r')
         # Read dataset from disk, dealing with text file's syntax
@@ -71,7 +70,6 @@ def main():
 
         # Substract 1 to each output class for friendly 0-based indexing
         return y_ - 1
-
 
     def LSTM_RNN(_X, _weights, _biases):
         # Function returns a tensorflow LSTM (RNN) artificial neural network from given parameters.
@@ -106,7 +104,6 @@ def main():
 
         # Linear activation
         return tf.matmul(lstm_last_output, _weights['out']) + _biases['out']
-
 
     def extract_batch_size(_train, step, batch_size):
         # Function to fetch a "batch_size" amount of data from "(X|y)_train" data.
@@ -274,4 +271,5 @@ def main():
           ", Accuracy = {}".format(accuracy))
 
 
-
+if __name__ == '__main__':
+    main()

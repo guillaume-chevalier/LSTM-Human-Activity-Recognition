@@ -1,3 +1,4 @@
+import numpy as np
 import tensorflow as tf
 
 from neuraxle.base import BaseStep
@@ -24,7 +25,8 @@ class ClassificationRNNTensorFlowModel(BaseStep):
         'n_hidden': N_HIDDEN,  # Hidden layer num of features
         'n_classes': N_CLASSES,  # Total classes (should go up, or should go down)
         'learning_rate': LEARNING_RATE,
-        'lambda_loss_amount': LAMBDA_LOSS_AMOUNT
+        'lambda_loss_amount': LAMBDA_LOSS_AMOUNT,
+        'batch_size': BATCH_SIZE
     })
 
     def __init__(
@@ -56,17 +58,13 @@ class ClassificationRNNTensorFlowModel(BaseStep):
         self.train_accuracies = None
 
     def setup(self) -> BaseStep:
-        with tf.variable_scope(LSTM_RNN_VARIABLE_SCOPE):
+        # Launch the graph
+        with tf.variable_scope(LSTM_RNN_VARIABLE_SCOPE, reuse=tf.AUTO_REUSE):
             self.pred_name = 'pred'
             self.x_name = 'x'
             self.y_name = 'y'
 
             pred = tf_model_forward(self.pred_name, self.x_name, self.y_name, self.hyperparams)
-
-            # Launch the graph
-            self.sess = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=True))
-            init = tf.global_variables_initializer()
-            self.sess.run(init)
 
             # Loss, optimizer and evaluation
             # L2 loss prevents this overkill neural network to overfit the data
@@ -78,7 +76,7 @@ class ClassificationRNNTensorFlowModel(BaseStep):
             # Softmax loss
             self.cost = tf.reduce_mean(
                 tf.nn.softmax_cross_entropy_with_logits(
-                    labels=self.get_tensor_by_name(self.y_name),
+                    labels=self.get_y_placeholder(),
                     logits=pred
                 )
             ) + l2
@@ -97,6 +95,10 @@ class ClassificationRNNTensorFlowModel(BaseStep):
             self.train_losses = []
             self.train_accuracies = []
 
+            self.sess = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=True))
+            init = tf.global_variables_initializer()
+            self.sess.run(init)
+
             self.is_initialized = True
 
         return self
@@ -104,32 +106,56 @@ class ClassificationRNNTensorFlowModel(BaseStep):
     def get_tensor_by_name(self, name):
         return tf.get_default_graph().get_tensor_by_name("{0}/{1}:0".format(LSTM_RNN_VARIABLE_SCOPE, name))
 
+    def get_x_placeholder(self):
+        return self.get_tensor_by_name(self.x_name)
+
+    def get_y_placeholder(self):
+        return self.get_tensor_by_name(self.y_name)
+
     def teardown(self):
-        self.sess.close()
+        if self.sess is not None:
+            self.sess.close()
 
     def fit(self, data_inputs, expected_outputs=None) -> 'BaseStep':
-        with tf.variable_scope(LSTM_RNN_VARIABLE_SCOPE):
+        if not isinstance(data_inputs, np.ndarray):
+            data_inputs = np.array(data_inputs)
+
+        if not isinstance(expected_outputs, np.ndarray):
+            expected_outputs = np.array(expected_outputs)
+
+        expected_outputs = np.reshape(expected_outputs, (self.hyperparams['batch_size'], self.hyperparams['n_classes']))
+
+        # shape x : (?, 128, 9)
+        # shape y : (?, 6)
+
+        # shape data_inputs : (1500, 128, 9)
+        # shape expected_outputs : (1500, 6)
+
+        with tf.variable_scope(LSTM_RNN_VARIABLE_SCOPE, reuse=tf.AUTO_REUSE):
             _, loss, acc = self.sess.run(
                 [self.optimizer, self.cost, self.accuracy],
                 feed_dict={
-                    self.get_tensor_by_name(self.x_name): data_inputs,
-                    self.get_tensor_by_name(self.y_name): expected_outputs
+                    self.get_x_placeholder(): data_inputs,
+                    self.get_y_placeholder(): expected_outputs
                 }
             )
 
             self.train_losses.append(loss)
             self.train_accuracies.append(acc)
 
+            print("Batch Loss = " + "{:.6f}".format(loss) + ", Accuracy = {}".format(acc))
+
         return self
 
     def transform(self, data_inputs):
-        with tf.variable_scope(LSTM_RNN_VARIABLE_SCOPE):
-            return self.sess.run(
-                self.get_tensor_by_name(self.pred_name),
+        with tf.variable_scope(LSTM_RNN_VARIABLE_SCOPE, reuse=tf.AUTO_REUSE):
+            outputs = self.sess.run(
+                [self.get_tensor_by_name(self.pred_name)],
                 feed_dict={
-                    self.get_tensor_by_name(self.x_name): data_inputs
+                    self.get_x_placeholder(): data_inputs
                 }
-            )
+            )[0]
+            return outputs
 
     def _evaluate_on_test_set(self):
         one_hot_encoded_y_test = OneHotEncoder(
@@ -137,12 +163,12 @@ class ClassificationRNNTensorFlowModel(BaseStep):
             name='one_hot_encoded_y_test'
         ).transform(self.y_test)
 
-        with tf.variable_scope(LSTM_RNN_VARIABLE_SCOPE):
+        with tf.variable_scope(LSTM_RNN_VARIABLE_SCOPE, reuse=tf.AUTO_REUSE):
             loss, acc = self.sess.run(
                 [self.cost, self.accuracy],
                 feed_dict={
-                    self.get_tensor_by_name(self.x_name): self.X_test,
-                    self.get_tensor_by_name(self.y_name): one_hot_encoded_y_test
+                    self.get_x_placeholder(): self.X_test,
+                    self.get_y_placeholder(): one_hot_encoded_y_test
                 }
             )
 
