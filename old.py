@@ -206,7 +206,7 @@ def main():
         batch_size_train = extract_batch_size(y_train, step, batch_size)
 
         batch_ys = OneHotEncoder(
-            no_columns=n_classes,
+            nb_columns=n_classes,
             name='batch_ys'
         ).transform(batch_size_train)
 
@@ -230,7 +230,7 @@ def main():
 
         # Evaluation on the test set (no learning made here - just evaluation for diagnosis)
         one_hot_encoded_y_test = OneHotEncoder(
-            no_columns=n_classes,
+            nb_columns=n_classes,
             name='one_hot_encoded_y_test'
         ).transform(y_test)
 
@@ -254,7 +254,7 @@ def main():
     # Accuracy for test data
 
     one_host_encoded_y_test = OneHotEncoder(
-        no_columns=n_classes,
+        nb_columns=n_classes,
         name='one_hot_predictions'
     ).transform(y_test)
 

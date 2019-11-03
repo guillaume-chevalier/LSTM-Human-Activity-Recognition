@@ -39,7 +39,7 @@ def main():
 
     no_iter = int(math.floor(training_iters / BATCH_SIZE))
     for _ in range(no_iter):
-        pipeline = pipeline.fit(X_train, y_train)
+        pipeline = pipeline.fit_transform(X_train, y_train)
 
     pipeline.save(
         ExecutionContext.create_from_root(

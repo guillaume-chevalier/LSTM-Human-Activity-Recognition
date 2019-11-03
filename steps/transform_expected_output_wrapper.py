@@ -1,7 +1,7 @@
 from neuraxle.base import NonFittableMixin, MetaStepMixin, BaseStep, DataContainer, ExecutionContext
 
 
-class TransformExpectedOutputWrapper(NonFittableMixin, MetaStepMixin, BaseStep):
+class OutputTransformerWrapper(NonFittableMixin, MetaStepMixin, BaseStep):
     """
     Transform expected output wrapper step that can sends the expected_outputs to the wrapped step
     so that it can transform the expected outputs.

@@ -4,7 +4,7 @@ import tensorflow as tf
 from neuraxle.base import BaseSaver
 
 
-class Tensorflow1StepSaver(BaseSaver):
+class TensorflowV1StepSaver(BaseSaver):
     """
     Step saver for a tensorflow Session using tf.train.Saver().
     It saves, or restores the tf.Session() checkpoint at the context path using the step name as file name.
