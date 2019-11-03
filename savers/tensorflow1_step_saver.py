@@ -24,11 +24,10 @@ class TensorflowV1StepSaver(BaseSaver):
         :return: saved step
         """
         saver = tf.train.Saver()
-        with tf.Session() as sess:
-            saver.save(
-                sess,
-                self._get_saved_model_path(context, step)
-            )
+        saver.save(
+            step.sess,
+            self._get_saved_model_path(context, step)
+        )
 
         return step
 
@@ -43,11 +42,10 @@ class TensorflowV1StepSaver(BaseSaver):
         :return: loaded step
         """
         saver = tf.train.Saver()
-        with tf.Session() as sess:
-            saver.restore(
-                sess,
-                self._get_saved_model_path(context, step)
-            )
+        saver.restore(
+            step.sess,
+            self._get_saved_model_path(context, step)
+        )
 
         return step
 
