@@ -1,0 +1,5 @@
+numpy
+tensorflow==1.15
+conv
+flask
+matplotlib

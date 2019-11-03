@@ -1,11 +1,11 @@
 import tensorflow as tf
 
-from neuraxle.base import BaseStep
+from neuraxle.base import BaseStep, NonTransformableMixin, NonFittableMixin
 from neuraxle.hyperparams.space import HyperparameterSamples
 from savers.tensorflow1_step_saver import Tensorflow1StepSaver
 
 
-class LSTMRNNTensorflowModel(BaseStep):
+class LSTMRNNTensorflowModel(NonFittableMixin, NonTransformableMixin, BaseStep):
     HYPERPARAMS = HyperparameterSamples({
         'n_steps': 128,
         'n_input': 9,
