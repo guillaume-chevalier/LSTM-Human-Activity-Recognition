@@ -1,15 +1,23 @@
 import tensorflow as tf
 
 
-def tf_model_forward(graph, name_x, name_y, hyperparams):
+def tf_model_forward(pred_name, name_x, name_y, hyperparams):
+    # Function returns a tensorflow LSTM (RNN) artificial neural network from given parameters.
+    # Moreover, two LSTM cells are stacked which adds deepness to the neural network.
+    # Note, some code of this notebook is inspired from an slightly different
+    # RNN architecture used on another dataset, some of the credits goes to
+    # "aymericdamien" under the MIT license.
+    # (NOTE: This step could be greatly optimised by shaping the dataset once
+    # input shape: (batch_size, n_steps, n_input)
+
     # Graph input/output
-    x = tf.placeholder(tf.float32, [None, hyperparams['n_steps'], hyperparams['n_input']], name='x')
-    y = tf.placeholder(tf.float32, [None, hyperparams['n_classes']], name='y')
+    x = tf.placeholder(tf.float32, [None, hyperparams['n_steps'], hyperparams['n_inputs']], name=name_x)
+    y = tf.placeholder(tf.float32, [None, hyperparams['n_classes']], name=name_y)
 
     # Graph weights
     weights = {
         'hidden': tf.Variable(
-            tf.random_normal([hyperparams['n_input'], hyperparams['n_hidden']])
+            tf.random_normal([hyperparams['n_inputs'], hyperparams['n_hidden']])
         ),  # Hidden layer weights
         'out': tf.Variable(
             tf.random_normal([hyperparams['n_hidden'], hyperparams['n_classes']], mean=1.0)
@@ -25,20 +33,12 @@ def tf_model_forward(graph, name_x, name_y, hyperparams):
         )
     }
 
-    # Function returns a tensorflow LSTM (RNN) artificial neural network from given parameters.
-    # Moreover, two LSTM cells are stacked which adds deepness to the neural network.
-    # Note, some code of this notebook is inspired from an slightly different
-    # RNN architecture used on another dataset, some of the credits goes to
-    # "aymericdamien" under the MIT license.
-    # (NOTE: This step could be greatly optimised by shaping the dataset once
-    # input shape: (batch_size, n_steps, n_input)
-
     data_inputs = tf.transpose(
         x,
         [1, 0, 2])  # permute n_steps and batch_size
 
     # Reshape to prepare input to hidden activation
-    data_inputs = tf.reshape(data_inputs, [-1, hyperparams['n_input']])
+    data_inputs = tf.reshape(data_inputs, [-1, hyperparams['n_inputs']])
     # new shape: (n_steps*batch_size, n_input)
 
     # ReLU activation, thanks to Yu Zhao for adding this improvement here:
@@ -63,4 +63,5 @@ def tf_model_forward(graph, name_x, name_y, hyperparams):
     lstm_last_output = outputs[-1]
 
     # Linear activation
-    return tf.matmul(lstm_last_output, weights['out']) + biases['out']
+    pred = tf.matmul(lstm_last_output, weights['out']) + biases['out']
+    return tf.identity(pred, name=pred_name)
