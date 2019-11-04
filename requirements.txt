@@ -1,5 +1,5 @@
 numpy
 tensorflow==1.15
-conv
+conv==0.2
 flask
 matplotlib

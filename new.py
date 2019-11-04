@@ -33,7 +33,7 @@ def main():
     print("The dataset is therefore properly normalised, as expected, but not yet one-hot encoded.")
 
     training_data_count = len(X_train)
-    training_iters = training_data_count * 300
+    training_iters = training_data_count * 3
 
     pipeline = HumanActivityRecognitionPipeline()
 
@@ -49,8 +49,23 @@ def main():
         )
     )
 
+    pipeline.teardown()
+
 
 def serve_rest_api():
+    # Load "X" (the neural network's training and testing inputs)
+
+    X_train = load_X(X_train_signals_paths)
+    X_test = load_X(X_test_signals_paths)
+
+    # Load "y" (the neural network's training and testing outputs)
+
+    y_train_path = os.path.join(DATASET_PATH, TRAIN, TRAIN_FILE_NAME)
+    y_test_path = os.path.join(DATASET_PATH, TEST, TEST_FILE_NAME)
+
+    y_train = load_y(y_train_path)
+    y_test = load_y(y_test_path)
+
     pipeline = HumanActivityRecognitionPipeline()
 
     pipeline = pipeline.load(
@@ -60,6 +75,8 @@ def serve_rest_api():
             DEFAULT_CACHE_FOLDER
         )
     )
+
+    pipeline, outputs = pipeline.fit_transform(X_train, y_train)
 
     # Easy REST API deployment.
     app = FlaskRestApiWrapper(
@@ -72,4 +89,4 @@ def serve_rest_api():
 
 
 if __name__ == '__main__':
-    main()
+    serve_rest_api()

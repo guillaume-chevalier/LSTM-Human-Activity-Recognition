@@ -23,11 +23,14 @@ class TensorflowV1StepSaver(BaseSaver):
         :type context: ExecutionContext
         :return: saved step
         """
-        saver = tf.train.Saver()
-        saver.save(
-            step.sess,
-            self._get_saved_model_path(context, step)
-        )
+        with step.get_graph().as_default():
+            saver = tf.train.Saver()
+            saver.save(
+                step.get_session(),
+                self._get_saved_model_path(context, step)
+            )
+
+            step.strip()
 
         return step
 
@@ -41,11 +44,14 @@ class TensorflowV1StepSaver(BaseSaver):
         :type context: ExecutionContext
         :return: loaded step
         """
-        saver = tf.train.Saver()
-        saver.restore(
-            step.sess,
-            self._get_saved_model_path(context, step)
-        )
+        step.is_initialized = False
+        step.setup()
+        with step.get_graph().as_default():
+            saver = tf.train.Saver()
+            saver.restore(
+                step.get_session(),
+                self._get_saved_model_path(context, step)
+            )
 
         return step
 
@@ -59,7 +65,9 @@ class TensorflowV1StepSaver(BaseSaver):
         :type context: ExecutionContext
         :return: loaded step
         """
-        return os.path.exists(self._get_saved_model_path(context, step))
+        meta_exists = os.path.exists(os.path.join(context.get_path(), "{0}.ckpt.meta".format(step.get_name())))
+        index_exists = os.path.exists(os.path.join(context.get_path(), "{0}.ckpt.index".format(step.get_name())))
+        return meta_exists and index_exists
 
     def _get_saved_model_path(self, context, step):
         """
