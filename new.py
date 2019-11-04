@@ -1,7 +1,6 @@
 # Those are separate normalised input features for the neural network
 import math
 import os
-
 import numpy as np
 
 from data_reading import DATASET_PATH, TRAIN, TEST, X_train_signals_paths, X_test_signals_paths, load_X, load_y, \
@@ -41,13 +40,7 @@ def main():
     for _ in range(no_iter):
         pipeline, outputs = pipeline.fit_transform(X_train, y_train)
 
-    pipeline.save(
-        ExecutionContext.create_from_root(
-            pipeline,
-            ExecutionMode.FIT,
-            DEFAULT_CACHE_FOLDER
-        )
-    )
+    pipeline.save(ExecutionContext.create_from_root( pipeline, ExecutionMode.FIT, DEFAULT_CACHE_FOLDER))
 
     pipeline.teardown()
 
