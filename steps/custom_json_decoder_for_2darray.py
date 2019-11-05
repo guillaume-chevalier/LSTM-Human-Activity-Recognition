@@ -13,7 +13,4 @@ class CustomJSONDecoderFor2DArray(JSONDataBodyDecoder):
         :param data_inputs: json object
         :return: np array for data inputs
         """
-        print(type(data_inputs))
-        print(len(data_inputs))
-        print(type(data_inputs)[0])
         return np.array(data_inputs)
