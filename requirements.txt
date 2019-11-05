@@ -1,7 +1,3 @@
-numpy
 tensorflow==1.15
 conv==0.2
-flask
-matplotlib
 git+git://github.com/alexbrillant/Neuraxle@one-hot-encoder-step#egg=Neuraxle
-
