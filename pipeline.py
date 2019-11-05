@@ -1,7 +1,8 @@
 from neuraxle.pipeline import MiniBatchSequentialPipeline, Joiner
+from neuraxle.steps.encoding import OneHotEncoder
+from neuraxle.steps.output_handlers import OutputTransformerWrapper
+
 from steps.lstm_rnn_tensorflow_model_wrapper import ClassificationRNNTensorFlowModel, N_CLASSES, BATCH_SIZE
-from steps.one_hot_encoder import OneHotEncoder
-from steps.transform_expected_output_wrapper import OutputTransformerWrapper
 
 
 # TODO: wrap by a validation split wrapper as issue #174

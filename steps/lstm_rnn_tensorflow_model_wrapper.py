@@ -1,11 +1,11 @@
 import numpy as np
 import tensorflow as tf
-
 from neuraxle.base import BaseStep
 from neuraxle.hyperparams.space import HyperparameterSamples
+from neuraxle.steps.encoding import OneHotEncoder
+
 from savers.tensorflow1_step_saver import TensorflowV1StepSaver
 from steps.lstm_rnn_tensorflow_model import tf_model_forward
-from steps.one_hot_encoder import OneHotEncoder
 
 LSTM_RNN_VARIABLE_SCOPE = "lstm_rnn"
 X_NAME = 'x'
@@ -80,7 +80,6 @@ class ClassificationRNNTensorFlowModel(BaseStep):
         with self.graph.as_default():
             # Launch the graph
             with tf.variable_scope(LSTM_RNN_VARIABLE_SCOPE, reuse=tf.AUTO_REUSE):
-
                 pred = tf_model_forward(PRED_NAME, X_NAME, Y_NAME, self.hyperparams)
 
                 # Loss, optimizer and evaluation
