@@ -1,0 +1,4 @@
+tensorflow==1.15
+tensorflow-gpu==1.15
+conv==0.2
+git+git://github.com/alexbrillant/Neuraxle@one-hot-encoder-step#egg=Neuraxle
