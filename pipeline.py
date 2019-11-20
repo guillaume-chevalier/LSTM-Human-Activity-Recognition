@@ -1,5 +1,5 @@
 from neuraxle.pipeline import MiniBatchSequentialPipeline, Joiner
-from neuraxle.steps.encoding import OneHotEncoder
+from neuraxle.steps.numpy import OneHotEncoder
 from neuraxle.steps.output_handlers import OutputTransformerWrapper
 
 from steps.lstm_rnn_tensorflow_model_wrapper import ClassificationRNNTensorFlowModel, N_CLASSES, BATCH_SIZE

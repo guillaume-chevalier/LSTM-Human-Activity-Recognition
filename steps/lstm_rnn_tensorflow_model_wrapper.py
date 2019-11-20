@@ -2,7 +2,7 @@ import numpy as np
 import tensorflow as tf
 from neuraxle.base import BaseStep
 from neuraxle.hyperparams.space import HyperparameterSamples
-from neuraxle.steps.encoding import OneHotEncoder
+from neuraxle.steps.numpy import OneHotEncoder
 
 from savers.tensorflow1_step_saver import TensorflowV1StepSaver
 from steps.lstm_rnn_tensorflow_model import tf_model_forward
