@@ -649,6 +649,15 @@ Copyright (c) 2016 Guillaume Chevalier. To cite my code, you can point to the UR
 
 My code is available for free and even for private usage for anyone under the [MIT License](https://github.com/guillaume-chevalier/LSTM-Human-Activity-Recognition/blob/master/LICENSE), however I ask to cite for using the code.
 
+Here is the BibTeX citation code: 
+```
+@misc{chevalier2016lstms,
+  title={LSTMs for human activity recognition},
+  author={Chevalier, Guillaume},
+  year={2016}
+}
+```
+
 ## Extra links
 
 ### Connect with me
