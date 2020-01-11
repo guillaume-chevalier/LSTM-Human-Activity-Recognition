@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 from neuraxle.api import DeepLearningPipeline
@@ -10,6 +9,7 @@ from neuraxle.steps.output_handlers import OutputTransformerWrapper
 
 from data_reading import load_data
 from neuraxle_tensorflow.tensorflow_v1 import TensorflowV1ModelStep
+from plotting import plot_metric
 from steps.forma_data import FormatData
 
 
@@ -149,24 +149,10 @@ def main():
     data_inputs, expected_outputs = load_data()
     pipeline, outputs = pipeline.fit_transform(data_inputs, expected_outputs)
 
-    plot_metrics(pipeline)
+    plot_metric(pipeline, metric_name='accuracy', xlabel='epoch', ylabel='accuracy', title='Model Accuracy')
 
     pipeline.save(ExecutionContext(DEFAULT_CACHE_FOLDER))
     pipeline.teardown()
-
-
-def plot_metrics(pipeline):
-    accuracies = pipeline.get_epoch_metric_train('accuracy')
-    plt.plot(range(len(accuracies)), accuracies)
-
-    accuracies = pipeline.get_epoch_metric_validation('accuracy')
-    plt.plot(range(len(accuracies)), accuracies)
-
-    plt.xlabel('epochs')
-    plt.xlabel('accuracy')
-    plt.title('Model Accuracy')
-    plt.legend(['training', 'validation'], loc='upper left')
-    plt.show()
 
 
 if __name__ == '__main__':
