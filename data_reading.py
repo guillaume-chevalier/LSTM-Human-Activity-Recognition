@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 
 INPUT_SIGNAL_TYPES = [
@@ -68,3 +70,25 @@ def load_y(y_path):
 
     # Substract 1 to each output class for friendly 0-based indexing
     return y_ - 1
+
+
+def load_data():
+    # Load "X" (the neural network's training and testing inputs)
+
+    X_train = load_X(X_train_signals_paths)
+    # X_test = load_X(X_test_signals_paths)
+
+    # Load "y" (the neural network's training and testing outputs)
+
+    y_train_path = os.path.join(DATASET_PATH, TRAIN, TRAIN_FILE_NAME)
+    # y_test_path = os.path.join(DATASET_PATH, TEST, TEST_FILE_NAME)
+
+    y_train = load_y(y_train_path)
+    # y_test = load_y(y_test_path)
+
+    print("Some useful info to get an insight on dataset's shape and normalisation:")
+    print("(data_inputs shape, expected_outputs shape, every data input mean, every data input standard deviation)")
+    print(X_train.shape, y_train.shape, np.mean(X_train), np.std(X_train))
+    print("The dataset is therefore properly normalised, as expected, but not yet one-hot encoded.")
+
+    return X_train, y_train
