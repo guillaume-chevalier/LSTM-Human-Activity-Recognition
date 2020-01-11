@@ -7,7 +7,6 @@ from neuraxle.hyperparams.space import HyperparameterSamples
 from neuraxle.pipeline import Pipeline
 from neuraxle.steps.numpy import OneHotEncoder
 from neuraxle.steps.output_handlers import OutputTransformerWrapper
-from sklearn.metrics import accuracy_score
 
 from data_reading import load_data
 from neuraxle_tensorflow.tensorflow_v1 import TensorflowV1ModelStep
@@ -98,12 +97,7 @@ def create_loss(step: TensorflowV1ModelStep):
     ) + l2
 
 
-def accuracy_score_classification(data_inputs, expected_outputs):
-    accuracy = np.mean(np.argmax(data_inputs, axis=1) == np.argmax(expected_outputs, axis=1))
-    return accuracy
-
-
-class HumanActivityRecognitionPipeline(DeepLearningPipeline):
+class HumanActivityRecognitionPipeline(Pipeline):
     N_HIDDEN = 32
     N_STEPS = 128
     N_INPUTS = 9
@@ -114,57 +108,65 @@ class HumanActivityRecognitionPipeline(DeepLearningPipeline):
     EPOCHS = 14
 
     def __init__(self):
-        super().__init__(
-            Pipeline([
-                OutputTransformerWrapper(OneHotEncoder(nb_columns=self.N_CLASSES, name='one_hot_encoded_label')),
-                FormatData(n_classes=self.N_CLASSES),
-                TensorflowV1ModelStep(
-                    create_graph=create_graph,
-                    create_loss=create_loss,
-                    create_optimizer=create_optimizer
-                ).set_hyperparams(
-                    HyperparameterSamples({
-                        'n_steps': self.N_STEPS,  # 128 timesteps per series
-                        'n_inputs': self.N_INPUTS,  # 9 input parameters per timestep
-                        'n_hidden': self.N_HIDDEN,  # Hidden layer num of features
-                        'n_classes': self.N_CLASSES,  # Total classes (should go up, or should go down)
-                        'learning_rate': self.LEARNING_RATE,
-                        'lambda_loss_amount': self.LAMBDA_LOSS_AMOUNT,
-                        'batch_size': self.BATCH_SIZE
-                    })
-                )
-            ]),
-            validation_size=0.15,
-            batch_size=self.BATCH_SIZE,
-            batch_metrics={'accuracy': accuracy_score},
-            shuffle_in_each_epoch_at_train=True,
-            n_epochs=self.EPOCHS,
-            epochs_metrics={'accuracy': accuracy_score},
-            scoring_function=accuracy_score
-        )
+        super().__init__([
+            OutputTransformerWrapper(OneHotEncoder(nb_columns=self.N_CLASSES, name='one_hot_encoded_label')),
+            FormatData(n_classes=self.N_CLASSES),
+            TensorflowV1ModelStep(
+                create_graph=create_graph,
+                create_loss=create_loss,
+                create_optimizer=create_optimizer
+            ).set_hyperparams(
+                HyperparameterSamples({
+                    'n_steps': self.N_STEPS,  # 128 timesteps per series
+                    'n_inputs': self.N_INPUTS,  # 9 input parameters per timestep
+                    'n_hidden': self.N_HIDDEN,  # Hidden layer num of features
+                    'n_classes': self.N_CLASSES,  # Total classes (should go up, or should go down)
+                    'learning_rate': self.LEARNING_RATE,
+                    'lambda_loss_amount': self.LAMBDA_LOSS_AMOUNT,
+                    'batch_size': self.BATCH_SIZE
+                })
+            )
+        ])
+
+
+def accuracy_score_classification(data_inputs, expected_outputs):
+    accuracy = np.mean(np.argmax(data_inputs, axis=1) == np.argmax(expected_outputs, axis=1))
+    return accuracy
 
 
 def main():
-    pipeline = HumanActivityRecognitionPipeline()
+    pipeline = DeepLearningPipeline(
+        HumanActivityRecognitionPipeline(),
+        validation_size=0.15,
+        batch_size=HumanActivityRecognitionPipeline.BATCH_SIZE,
+        batch_metrics={'accuracy': accuracy_score_classification},
+        shuffle_in_each_epoch_at_train=True,
+        n_epochs=HumanActivityRecognitionPipeline.EPOCHS,
+        epochs_metrics={'accuracy': accuracy_score_classification},
+        scoring_function=accuracy_score_classification
+    )
 
     data_inputs, expected_outputs = load_data()
     pipeline, outputs = pipeline.fit_transform(data_inputs, expected_outputs)
 
-    accuracies = pipeline.get_epoch_metric_train('accuracy')
-    plt.plot(range(len(accuracies)), accuracies)
-    plt.xlabel('epochs')
-    plt.xlabel('accuracy')
-    plt.title('Training accuracy')
-
-    accuracies = pipeline.get_epoch_metric_validation('accuracy')
-    plt.plot(range(len(accuracies)), accuracies)
-    plt.xlabel('epochs')
-    plt.xlabel('accuracy')
-    plt.title('Validation accuracy')
-    plt.show()
+    plot_metrics(pipeline)
 
     pipeline.save(ExecutionContext(DEFAULT_CACHE_FOLDER))
     pipeline.teardown()
+
+
+def plot_metrics(pipeline):
+    accuracies = pipeline.get_epoch_metric_train('accuracy')
+    plt.plot(range(len(accuracies)), accuracies)
+
+    accuracies = pipeline.get_epoch_metric_validation('accuracy')
+    plt.plot(range(len(accuracies)), accuracies)
+
+    plt.xlabel('epochs')
+    plt.xlabel('accuracy')
+    plt.title('Model Accuracy')
+    plt.legend(['training', 'validation'], loc='upper left')
+    plt.show()
 
 
 if __name__ == '__main__':
