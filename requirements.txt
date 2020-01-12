@@ -1,4 +1,4 @@
 tensorflow==1.15
 tensorflow-gpu==1.15
 conv==0.2
--e git://github.com/alexbrillant/Neuraxle.git@a270fe2b2f73c9350d76fcf4b6f058b764a8c8f7#egg=neuraxle
+-e git://github.com/alexbrillant/Neuraxle.git@bb9bba79dbbf93c9b60c6c5036e9d6bf6021e5c5#egg=neuraxle

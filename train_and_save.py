@@ -149,7 +149,13 @@ def main():
     data_inputs, expected_outputs = load_data()
     pipeline, outputs = pipeline.fit_transform(data_inputs, expected_outputs)
 
-    plot_metric(pipeline, metric_name='accuracy', xlabel='epoch', ylabel='accuracy', title='Model Accuracy')
+    accuracies_train = pipeline.get_epoch_metric_train('accuracy')
+    accuracies_validation = pipeline.get_epoch_metric_validation('accuracy')
+
+    plot_metric(accuracies_train, accuracies_validation, xlabel='epoch', ylabel='accuracy', title='Model Accuracy')
+
+    loss = pipeline.get_step_by_name('TensorflowV1ModelStep').loss
+    plot_metric(loss, xlabel='batch', ylabel='softmax_cross_entropy_with_logits', title='softmax_cross_entropy_with_logits')
 
     pipeline.save(ExecutionContext(DEFAULT_CACHE_FOLDER))
     pipeline.teardown()

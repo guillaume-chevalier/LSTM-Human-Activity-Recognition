@@ -1,15 +1,17 @@
 from matplotlib import pyplot as plt
 
 
-def plot_metric(pipeline, metric_name, xlabel, ylabel, title):
-    accuracies = pipeline.get_epoch_metric_train(metric_name)
-    plt.plot(range(len(accuracies)), accuracies)
+def plot_metric(metric_train, metric_validation=None, xlabel='x', ylabel='y', title='Metric'):
+    plt.plot(range(len(metric_train)), metric_train)
 
-    accuracies = pipeline.get_epoch_metric_validation(metric_name)
-    plt.plot(range(len(accuracies)), accuracies)
+    legend = ['training']
+    if metric_validation is not None:
+        plt.plot(range(len(metric_validation)), metric_validation)
+        legend.append('validation')
 
     plt.xlabel(xlabel)
     plt.xlabel(ylabel)
     plt.title(title)
-    plt.legend(['training', 'validation'], loc='upper left')
+
+    plt.legend(legend, loc='upper left')
     plt.show()
