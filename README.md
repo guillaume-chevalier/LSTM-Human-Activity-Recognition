@@ -614,19 +614,16 @@ I also tried my code without the gyroscope, using only the 3D accelerometer's 6 
 
 ## Improvements
 
-In [another open-source repository of mine](https://github.com/guillaume-chevalier/HAR-stacked-residual-bidir-LSTMs), the accuracy is pushed up to nearly 94% using a special deep LSTM architecture which combines the concepts of bidirectional RNNs, residual connections, and stacked cells. This architecture is also tested on another similar activity dataset. It resembles the nice architecture used in "[Google’s Neural Machine Translation System: Bridging the Gap between Human and Machine Translation](https://arxiv.org/pdf/1609.08144.pdf)", without an attention mechanism, and with just the encoder part - as a "many to one" architecture instead of a "many to many" to be adapted to the Human Activity Recognition (HAR) problem. I also worked more on the problem and came up with the [LARNN](https://github.com/guillaume-chevalier/Linear-Attention-Recurrent-Neural-Network), however it's complicated for just a little gain. Thus the current, original activity recognition project is simply better to use for its outstanding simplicity.
+In [another open-source repository of mine](https://github.com/guillaume-chevalier/HAR-stacked-residual-bidir-LSTMs), the accuracy is pushed up to nearly 94% using a special deep LSTM architecture which combines the concepts of bidirectional RNNs, residual connections, and stacked cells. This architecture is also tested on another similar activity dataset. It resembles the nice architecture used in "[Google’s Neural Machine Translation System: Bridging the Gap between Human and Machine Translation](https://arxiv.org/pdf/1609.08144.pdf)", without an attention mechanism, and with just the encoder part - as a "many to one" architecture instead of a "many to many" to be adapted to the Human Activity Recognition (HAR) problem. I also worked more on the problem and came up with the [LARNN](https://github.com/guillaume-chevalier/Linear-Attention-Recurrent-Neural-Network), however it's complicated for just a little gain. Thus the current, original activity recognition project is simply better to use for its simplicity. We've also coded a [non-deep learning machine learning pipeline](https://github.com/Neuraxio/Kata-Clean-Machine-Learning-From-Dirty-Code) on the same datasets using classical featurization techniques and older machine learning algorithms.
 
-If you want to learn more about deep learning, I have also built a list of the learning ressources for deep learning which have revealed to be the most useful to me [here](https://github.com/guillaume-chevalier/Awesome-Deep-Learning-Resources).
+If you want to learn more about deep learning, I have also built a list of the learning ressources for deep learning which have revealed to be the most useful to me [here](https://github.com/guillaume-chevalier/Awesome-Deep-Learning-Resources). You may also be interested in my [online course on Deep Learning and Recurrent Neural Networks (DL&RNN)](https://www.neuraxio.com/en/time-series-solution).
 
 I also have made even more improvements as seen just below with the few lines of code for easier usage and for reaching an even better score. Note this this is still an ongoing project, [subscribe here](https://www.neuraxio.com/en/time-series-solution) to learn more.
 
-### Even better and easily usable in the cloud
+### More time series processing
 
-So I'm planning to release an easily-usable cloud solution that can be used as follow to classify or forecast your time series, and this isn't limited to Human Activity Recognition data:
+Visit [Neuraxio's Time Series Solution](https://www.neuraxio.com/en/time-series-solution) product page for more information.
 
-[![](https://www.neuraxio.com/images/neuraxio-ts-solution.png)](https://www.neuraxio.com/en/time-series-solution)
-
-Visit [the Neuraxio's Time Series Solution](https://www.neuraxio.com/en/time-series-solution) product page for more information.
 
 ## References
 
@@ -676,6 +673,20 @@ This activity recognition project has been seen in:
 - [Awesome TensorFlow](https://github.com/jtoy/awesome-tensorflow#tutorials)
 - [TensorFlow World](https://github.com/astorfi/TensorFlow-World#some-useful-tutorials)
 - And more.
+
+## Collaborate with us on similar research projects
+
+Join the [slack workspace](https://join.slack.com/t/neuraxio/shared_invite/zt-8lyw42c5-4PuWjTT8dQqeFK3at1s_dQ) for time series processing, where you can: 
+
+- Collaborate with us and other researchers on writing more time series processing papers, in the #research channel;
+- Do business with us and other companies for services and products related to time series processing, in the #business channel;
+- Talk about how to do Clean Machine Learning using [Neuraxle](https://github.com/Neuraxio/Neuraxle), in the #neuraxle channel;
+
+## Online Course: Learn Deep Learning and Recurrent Neural Networks (DL&RNN)
+
+We have created a course on Deep Learning and Recurrent Neural Networks (DL&RNN). [Request an access to the course here](https://www.neuraxio.com/en/time-series-solution). That is the most richly dense and accelerated course out there on this precise topic of DL&RNN.
+
+We've also created another course on how to do Clean Machine Learning with the right design patterns and the right software architecture for your code to evolve correctly to be useable in production environments.
 
 ---
 
