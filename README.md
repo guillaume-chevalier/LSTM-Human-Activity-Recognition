@@ -654,6 +654,27 @@ Here is the BibTeX citation code:
 }
 ```
 
+I've also published a second paper, with contributors, regarding a [second iteration as an improvement of this work](https://github.com/guillaume-chevalier/HAR-stacked-residual-bidir-LSTMs), with deeper neural networks. The paper is available on [arXiv](https://arxiv.org/abs/1708.08989). Here is the BibTeX citation code for this newer piece of work based on this project: 
+```
+@article{DBLP:journals/corr/abs-1708-08989,
+  author    = {Yu Zhao and
+               Rennong Yang and
+               Guillaume Chevalier and
+               Maoguo Gong},
+  title     = {Deep Residual Bidir-LSTM for Human Activity Recognition Using Wearable
+               Sensors},
+  journal   = {CoRR},
+  volume    = {abs/1708.08989},
+  year      = {2017},
+  url       = {http://arxiv.org/abs/1708.08989},
+  archivePrefix = {arXiv},
+  eprint    = {1708.08989},
+  timestamp = {Mon, 13 Aug 2018 16:46:48 +0200},
+  biburl    = {https://dblp.org/rec/bib/journals/corr/abs-1708-08989},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+```
+
 ## Extra links
 
 ### Connect with me
@@ -674,19 +695,19 @@ This activity recognition project has been seen in:
 - [TensorFlow World](https://github.com/astorfi/TensorFlow-World#some-useful-tutorials)
 - And more.
 
-## Collaborate with us on similar research projects
+## Collaborate with us on similar projects!
 
-Join the [slack workspace](https://join.slack.com/t/neuraxio/shared_invite/zt-8lyw42c5-4PuWjTT8dQqeFK3at1s_dQ) for time series processing, where you can: 
+Join our [slack workspace](https://join.slack.com/t/neuraxio/shared_invite/zt-8lyw42c5-4PuWjTT8dQqeFK3at1s_dQ) for time series processing, where you can: 
 
-- Collaborate with us and other researchers on writing more time series processing papers, in the #research channel;
+- Collaborate with like-minded researchers in the #research channel;
 - Do business with us and other companies for services and products related to time series processing, in the #business channel;
-- Talk about how to do Clean Machine Learning using [Neuraxle](https://github.com/Neuraxio/Neuraxle), in the #neuraxle channel;
+- Talk about how to do [Clean Machine Learning](https://www.neuraxle.org/stable/intro.html) using [Neuraxle](https://github.com/Neuraxio/Neuraxle), in the #neuraxle channel;
 
 ## Online Course: Learn Deep Learning and Recurrent Neural Networks (DL&RNN)
 
 We have created a course on Deep Learning and Recurrent Neural Networks (DL&RNN). [Request an access to the course here](https://www.neuraxio.com/en/time-series-solution). That is the most richly dense and accelerated course out there on this precise topic of DL&RNN.
 
-We've also created another course on how to do Clean Machine Learning with the right design patterns and the right software architecture for your code to evolve correctly to be useable in production environments.
+We've also created another course on how to do [Clean Machine Learning](https://www.neuraxio.com/products/clean-machine-learning-training) with the right design patterns and the right software architecture for your code to evolve correctly to be useable in production environments.
 
 ---
 
