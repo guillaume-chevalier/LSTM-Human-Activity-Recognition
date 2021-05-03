@@ -41,7 +41,7 @@ As explained in [this article](http://karpathy.github.io/2015/05/21/rnn-effectiv
 
 ## What is an LSTM?
 
-An LSTM is an improved RNN. It is more complex, but easier to train, avoiding what is called the vanishing gradient problem. I recommend [this article](http://colah.github.io/posts/2015-08-Understanding-LSTMs/) for you to learn more on LSTMs.
+An LSTM is an improved RNN. It is more complex, but easier to train, avoiding what is called the vanishing gradient problem. I recommend [this course](https://www.dl-rnn-course.neuraxio.com/start) for you to learn more on LSTMs.
 
 > [Learn more on LSTMs](https://www.dl-rnn-course.neuraxio.com/start)
 
