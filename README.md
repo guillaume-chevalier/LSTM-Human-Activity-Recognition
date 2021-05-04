@@ -36,14 +36,14 @@ That said, I will use the almost raw data: only the gravity effect has been filt
 
 As explained in [this article](http://karpathy.github.io/2015/05/21/rnn-effectiveness/), an RNN takes many input vectors to process them and output other vectors. It can be roughly pictured like in the image below, imagining each rectangle has a vectorial depth and other special hidden quirks in the image below. **In our case, the "many to one" architecture is used**: we accept time series of [feature vectors](https://www.quora.com/What-do-samples-features-time-steps-mean-in-LSTM/answer/Guillaume-Chevalier-2) (one vector per [time step](https://www.quora.com/What-do-samples-features-time-steps-mean-in-LSTM/answer/Guillaume-Chevalier-2)) to convert them to a probability vector at the output for classification. Note that a "one to one" architecture would be a standard feedforward neural network.
 
-> [![RNN Architectures](https://raw.githubusercontent.com/Neuraxio/Machine-Learning-Figures/master/rnn-architectures.png)](https://www.dl-rnn-course.neuraxio.com/start)
-> [Learn more on RNNs](https://www.dl-rnn-course.neuraxio.com/start)
+> [![RNN Architectures](https://raw.githubusercontent.com/Neuraxio/Machine-Learning-Figures/master/rnn-architectures.png)](https://www.dl-rnn-course.neuraxio.com/start?utm_source=github_lstm)
+> [Learn more on RNNs](https://www.dl-rnn-course.neuraxio.com/start?utm_source=github_lstm)
 
 ## What is an LSTM?
 
-An LSTM is an improved RNN. It is more complex, but easier to train, avoiding what is called the vanishing gradient problem. I recommend [this course](https://www.dl-rnn-course.neuraxio.com/start) for you to learn more on LSTMs.
+An LSTM is an improved RNN. It is more complex, but easier to train, avoiding what is called the vanishing gradient problem. I recommend [this course](https://www.dl-rnn-course.neuraxio.com/start?utm_source=github_lstm) for you to learn more on LSTMs.
 
-> [Learn more on LSTMs](https://www.dl-rnn-course.neuraxio.com/start)
+> [Learn more on LSTMs](https://www.dl-rnn-course.neuraxio.com/start?utm_source=github_lstm)
 
 ## Results
 
@@ -618,7 +618,7 @@ I also tried my code without the gyroscope, using only the 3D accelerometer's 6 
 
 In [another open-source repository of mine](https://github.com/guillaume-chevalier/HAR-stacked-residual-bidir-LSTMs), the accuracy is pushed up to nearly 94% using a special deep LSTM architecture which combines the concepts of bidirectional RNNs, residual connections, and stacked cells. This architecture is also tested on another similar activity dataset. It resembles the nice architecture used in "[Google’s Neural Machine Translation System: Bridging the Gap between Human and Machine Translation](https://arxiv.org/pdf/1609.08144.pdf)", without an attention mechanism, and with just the encoder part - as a "many to one" architecture instead of a "many to many" to be adapted to the Human Activity Recognition (HAR) problem. I also worked more on the problem and came up with the [LARNN](https://github.com/guillaume-chevalier/Linear-Attention-Recurrent-Neural-Network), however it's complicated for just a little gain. Thus the current, original activity recognition project is simply better to use for its simplicity. We've also coded a [non-deep learning machine learning pipeline](https://github.com/Neuraxio/Kata-Clean-Machine-Learning-From-Dirty-Code) on the same datasets using classical featurization techniques and older machine learning algorithms.
 
-If you want to learn more about deep learning, I have also built a list of the learning ressources for deep learning which have revealed to be the most useful to me [here](https://github.com/guillaume-chevalier/Awesome-Deep-Learning-Resources). You may also be interested in my [online course on Deep Learning and Recurrent Neural Networks (DL&RNN)](https://www.dl-rnn-course.neuraxio.com/start).
+If you want to learn more about deep learning, I have also built a list of the learning ressources for deep learning which have revealed to be the most useful to me [here](https://github.com/guillaume-chevalier/Awesome-Deep-Learning-Resources). You may also be interested in my [online course on Deep Learning and Recurrent Neural Networks (DL&RNN)](https://www.dl-rnn-course.neuraxio.com/start?utm_source=github_lstm).
 
 I also have made even more improvements as seen just below with the few lines of code for easier usage and for reaching an even better score. Note this this is still an ongoing project, [subscribe here](https://www.neuraxio.com/en/time-series-solution) to learn more.
 
@@ -701,7 +701,7 @@ Join our [slack workspace](https://join.slack.com/t/neuraxio/shared_invite/zt-8l
 
 ## Online Course: Learn Deep Learning and Recurrent Neural Networks (DL&RNN)
 
-I have created a course on Deep Learning and Recurrent Neural Networks (DL&RNN). [Watch a preview of the Deep Learning and Recurrent Neural Networks (DL&RNN) course here](https://www.dl-rnn-course.neuraxio.com/start). It is the most richly dense and accelerated course out there on this precise topic to make you understand RNNs and other advanced neural networks techniques quickly.
+I have created a course on Deep Learning and Recurrent Neural Networks (DL&RNN). [Watch a preview of the Deep Learning and Recurrent Neural Networks (DL&RNN) course here](https://www.dl-rnn-course.neuraxio.com/start?utm_source=github_lstm). It is the most richly dense and accelerated course out there on this precise topic to make you understand RNNs and other advanced neural networks techniques quickly.
 
 ---
 
